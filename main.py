@@ -8,6 +8,14 @@
   newsprint grain over the whole page. All 51 stories and dates
   unchanged from v3.
 
+  v6 (21 Nov 2026): anti-aliased text -- every glyph is rasterised at
+  4x supersampling, box-blurred over a ~1-cell window (1 px at scale 1,
+  5 px at scale 5) and downsampled to per-pixel coverage, blended over
+  the background (sqrt gamma keeps 1 px strokes dark). Glyph shapes,
+  metrics, layout, all 51 stories and dates, and all illustrations are
+  unchanged from v5; only the text edges get smooth grey ramps instead
+  of stair-steps.
+
 Draws a 1024x1024 newspaper front page procedurally with Python 3 stdlib
 only (struct + zlib for the PNG encoder, a hand-defined 5x7 bitmap font,
 and geometric pictograms). No network, no external files, no randomness:
@@ -74,8 +82,11 @@ import math
 import os
 import struct
 import zlib
+from itertools import accumulate
 
 W = H = 1024
+
+SS = 4  # v6: text supersampling factor for anti-aliased text
 
 PAPER = (250, 246, 236)   # warm newsprint
 INK = (17, 17, 17)        # near-black
@@ -253,19 +264,88 @@ class Canvas:
         self.fill_circle(cx, cy, max(2, r // 4), c)
 
     # ------------------------------------------------------------ text ----
+    def get(self, x, y):
+        i = (y * self.w + x) * 3
+        return (self.buf[i], self.buf[i + 1], self.buf[i + 2])
+
     def text(self, x, y, s, scale, c):
+        """Anti-aliased text (v6). Each glyph is rasterised at SSx
+        supersampling, box-blurred over a ~1-cell window (exact sums
+        via a summed-area table), then downsampled to per-pixel
+        coverage and blended over the background. Metrics (advance
+        6*scale, width len*6*scale - scale) are unchanged, so layout
+        is identical to v5; only edges get smooth grey ramps instead
+        of stair-steps. A sqrt gamma keeps 1 px strokes dark."""
         s = s.upper()
-        cx = x
-        for ch in s:
-            glyph = FONT.get(ch, FONT[' '])
-            for row in range(7):
-                bits = glyph[row]
+        n = len(s)
+        if n == 0:
+            return x
+        ss = SS
+        # Blur spread in mask px: ~1 glyph cell wide, so a diagonal
+        # staircase (steps of 1 cell) becomes a smooth ramp while
+        # stroke interiors stay fully dark and counters stay open.
+        r = max(1, ss * (scale - 1) // 2)
+        cell = scale * ss  # mask px per glyph cell
+        mw = n * 6 * cell
+        mh = 7 * cell
+        mask = bytearray(mw * mh)
+        for row in range(7):
+            parts = []
+            for ch in s:
+                bits = FONT.get(ch, FONT[' '])[row]
                 for col in range(5):
-                    if bits[col] == '1':
-                        self.fill_rect(cx + col * scale, y + row * scale,
-                                       scale, scale, c)
-            cx += 6 * scale
-        return cx  # x just past the last glyph
+                    parts.append(b'\x01' * cell if bits[col] == '1'
+                                 else b'\x00' * cell)
+                parts.append(b'\x00' * cell)  # 6th cell: advance gap
+            rowbytes = b''.join(parts)
+            for my in range(row * cell, (row + 1) * cell):
+                mask[my * mw:(my + 1) * mw] = rowbytes
+        # summed-area table of the mask padded by r zeros
+        pw, ph = mw + 2 * r, mh + 2 * r
+        pad = bytearray(r)
+        prows = []
+        for my in range(ph):
+            sy = my - r
+            if 0 <= sy < mh:
+                row = pad + mask[sy * mw:(sy + 1) * mw] + pad
+            else:
+                row = bytearray(pw)
+            prows.append(list(accumulate(row)))
+        ccols = [list(accumulate(col)) for col in zip(*prows)]
+        sat = [[0] * (pw + 1)]
+        for srow in zip(*ccols):
+            sat.append([0] + list(srow))
+        win = ss + 2 * r
+        area = win * win
+        out_w = n * 6 * scale
+        out_h = 7 * scale
+        for oy in range(out_h):
+            wy0 = oy * ss
+            wy1 = wy0 + win
+            py = y + oy
+            if py < 0 or py >= self.h:
+                continue
+            sat0 = sat[wy0]
+            sat1 = sat[wy1]
+            for ox in range(out_w):
+                wx0 = ox * ss
+                wx1 = wx0 + win
+                px = x + ox
+                if px < 0 or px >= self.w:
+                    continue
+                cov = (sat1[wx1] - sat0[wx1]
+                       - sat1[wx0] + sat0[wx0]) / area
+                if cov <= 0.0:
+                    continue
+                if cov >= 1.0:
+                    self.set(px, py, c)
+                    continue
+                a = cov ** 0.5
+                bg = self.get(px, py)
+                self.set(px, py, tuple(
+                    int(bg[i] + (c[i] - bg[i]) * a + 0.5)
+                    for i in range(3)))
+        return x + n * 6 * scale  # x just past the last glyph
 
     def text_width(self, s, scale):
         return len(s) * 6 * scale - scale
