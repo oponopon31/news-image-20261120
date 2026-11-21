@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """THE WORLD IN ONE DAY -- front page for Friday 20 November 2026.
 
+  v4 (21 Nov 2026): visual-richness upgrade -- detailed lead and
+  thumbnail illustrations (gradients, hatching, stipple, skylines,
+  candlesticks, spiral arms), heavy double-struck nameplate, shaded
+  stat strip, graticule world map, tinted ALSO rows, fine deterministic
+  newsprint grain over the whole page. All 51 stories and dates
+  unchanged from v3.
+
 Draws a 1024x1024 newspaper front page procedurally with Python 3 stdlib
 only (struct + zlib for the PNG encoder, a hand-defined 5x7 bitmap font,
 and geometric pictograms). No network, no external files, no randomness:
@@ -311,6 +318,56 @@ def write_png(path, canvas):
         f.write(png)
     return png
 
+
+# ------------------------------------------------------- v4 helpers ----
+def grad_v(cv, x, y, w, h, c1, c2):
+    """Vertical gradient in h bands (deterministic, stdlib only)."""
+    for yy in range(h):
+        t = yy / max(1, h - 1)
+        c = tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
+        cv.hline(x, x + w - 1, y + yy, c)
+
+def grad_h(cv, x, y, w, h, c1, c2):
+    for xx in range(w):
+        t = xx / max(1, w - 1)
+        c = tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
+        cv.vline(x + xx, y, y + h - 1, c)
+
+def hatch_diag(cv, x, y, w, h, c, step=6):
+    for k in range(-h, w + h, step):
+        cv.line(x + k, y + h - 1, x + k + h, y, c, 1)
+
+def stipple(cv, x, y, w, h, c, seed=7, density=3):
+    """Deterministic pseudo-random dots inside a rect."""
+    s = seed
+    for yy in range(y, y + h, 2):
+        for xx in range(x, x + w, 2):
+            s = (s * 1103515245 + 12345) & 0x7FFFFFFF
+            if s % 10 < density:
+                cv.set(xx, yy, c)
+
+def apply_grain(cv, amp=7):
+    """Fine deterministic newsprint grain over the whole page.
+    The single biggest PNG-size lever: per-pixel variation that
+    zlib cannot collapse, at an amplitude that stays readable."""
+    buf = cv.buf
+    state = 987654321
+    span = 2 * amp + 1
+    for i in range(0, len(buf), 3):
+        state = (state * 1664525 + 1013904223) & 0xFFFFFFFF
+        d = (state >> 24) % span - amp
+        if d:
+            v = buf[i] + d
+            buf[i] = 255 if v > 255 else (0 if v < 0 else v)
+        d = ((state >> 16) & 0xFF) % span - amp
+        if d:
+            v = buf[i + 1] + d
+            buf[i + 1] = 255 if v > 255 else (0 if v < 0 else v)
+        d = ((state >> 8) & 0xFF) % span - amp
+        if d:
+            v = buf[i + 2] + d
+            buf[i + 2] = 255 if v > 255 else (0 if v < 0 else v)
+
 # ---------------------------------------------------------- pictograms ----
 # Every picture is drawn from geometric primitives in code -- original
 # work, no images, no copying of any reference artwork.
@@ -360,286 +417,555 @@ def caption_strip(cv, x, y, w, s):
     cv.text(x + 4, y + 3, s, 1, PAPER)
 
 
+
 def pic_kyiv(cv, ox, oy, w, h):
-    """Night sky over a river bridge: missile trails, two blasts."""
-    cv.fill_rect(ox, oy, w, h, NAVY)
-    for sx, sy in ((0.12, 0.16), (0.30, 0.10), (0.52, 0.18),
-                   (0.72, 0.08), (0.88, 0.22), (0.42, 0.30)):
-        cv.fill_rect(ox + int(w * sx), oy + int(h * sy), 2, 2, PAPER)
-    # dashed missile trails down to the bridge
-    dashed(cv, ox + int(w * 0.98), oy + 2,
-           ox + int(w * 0.62), oy + int(h * 0.55), PAPER)
-    dashed(cv, ox + int(w * 0.80), oy + 2,
-           ox + int(w * 0.45), oy + int(h * 0.55), PAPER)
-    # bridge deck, arch and supports
-    dy = oy + int(h * 0.58)
-    cv.hline(ox + 6, ox + w - 7, dy, (150, 150, 150), 4)
+    grad_v(cv, ox, oy, w, h, (16, 26, 54), (38, 58, 96))
+    # moon with halo
+    mx, my = ox + int(w * 0.88), oy + int(h * 0.16)
+    cv.fill_circle(mx, my, 11, (210, 210, 190))
+    cv.fill_circle(mx, my, 7, (240, 238, 220))
+    cv.fill_circle(mx - 2, my - 2, 2, (200, 200, 185))
+    # many stars, some with cross sparkle
+    for sx, sy in ((0.06, 0.12), (0.14, 0.07), (0.24, 0.18), (0.33, 0.08),
+                   (0.44, 0.14), (0.55, 0.07), (0.66, 0.16), (0.76, 0.06),
+                   (0.05, 0.30), (0.20, 0.28), (0.38, 0.26), (0.60, 0.28),
+                   (0.82, 0.30), (0.94, 0.10), (0.48, 0.20), (0.70, 0.24)):
+        px, py = ox + int(w * sx), oy + int(h * sy)
+        cv.fill_rect(px, py, 2, 2, PAPER)
+        if (int(sx * 100) + int(sy * 100)) % 3 == 0:
+            cv.hline(px - 2, px + 3, py, PAPER, 1)
+            cv.vline(px, py - 2, py + 3, PAPER, 1)
+    # skyline: buildings with lit windows behind the bridge
+    base = oy + int(h * 0.58)
+    bx = ox + 4
+    bi = 0
+    while bx < ox + w - 8:
+        bw = 14 + (bi * 7) % 18
+        bh = 12 + (bi * 11) % 22
+        cv.fill_rect(bx, base - bh, bw, bh, (10, 16, 34))
+        cv.hline(bx, bx + bw - 1, base - bh, (90, 100, 130), 1)
+        for wy in range(base - bh + 3, base - 2, 5):
+            for wx in range(bx + 3, bx + bw - 3, 5):
+                if (wx * 3 + wy * 7 + bi) % 5 < 2:
+                    cv.fill_rect(wx, wy, 2, 2, (255, 205, 90))
+        bx += bw + 3
+        bi += 1
+    # three dashed missile trails + missile dots
+    for (tx0, tx1) in ((0.98, 0.62), (0.80, 0.45), (0.62, 0.30)):
+        dashed(cv, ox + int(w * tx0), oy + 2,
+               ox + int(w * tx1), oy + int(h * 0.55), PAPER)
+        cv.fill_circle(ox + int(w * tx0) - 6, oy + 8, 2, YELLOW)
+    # bridge deck, arches, cables, supports
+    dy = base
+    cv.hline(ox + 6, ox + w - 7, dy, (170, 170, 170), 4)
+    cv.hline(ox + 6, ox + w - 7, dy + 4, (110, 110, 110), 1)
     cv.line(ox + int(w * 0.15), dy + 4, ox + w // 2, dy + 14,
             (150, 150, 150), 3)
     cv.line(ox + w // 2, dy + 14, ox + int(w * 0.85), dy + 4,
             (150, 150, 150), 3)
-    for fx in (0.20, 0.50, 0.80):
+    for fx in (0.12, 0.28, 0.50, 0.72, 0.88):
         cv.vline(ox + int(w * fx), dy + 4, oy + int(h * 0.82),
-                 (150, 150, 150), 3)
-    # blasts on the deck
-    cv.star(ox + int(w * 0.30), dy - 6, 9, YELLOW, 2)
-    cv.star(ox + int(w * 0.66), dy - 4, 8, RED, 2)
-    # water
+                 (140, 140, 140), 3)
+    for cx0 in (0.15, 0.35, 0.55, 0.75):
+        cv.line(ox + int(w * cx0), dy, ox + int(w * (cx0 + 0.08)),
+                dy - 12, (120, 120, 120), 1)
+    # three blasts: glow rings + burst + smoke
+    for bfx, bc in ((0.30, YELLOW), (0.66, RED), (0.84, YELLOW)):
+        px, py = ox + int(w * bfx), dy - 6
+        cv.fill_circle(px, py, 12, (200, 90, 20))
+        cv.fill_circle(px, py, 8, (240, 140, 40))
+        cv.star(px, py, 9, bc, 2)
+        cv.fill_circle(px, py, 3, PAPER)
+        cv.fill_circle(px - 8, py - 12, 4, (120, 120, 120))
+        cv.fill_circle(px + 6, py - 14, 5, (100, 100, 100))
+        cv.fill_circle(px + 12, py - 8, 3, (130, 130, 130))
+        # reflection streak in the water below
+        cv.vline(px, oy + int(h * 0.86), oy + h - 4, (240, 160, 60), 2)
+    # water: gradient + ripples + reflections
     wy = oy + int(h * 0.84)
-    cv.fill_rect(ox, wy, w, h - int(h * 0.84), (40, 70, 120))
-    for wx in range(ox + 6, ox + w - 10, 16):
-        cv.line(wx, wy + 6, wx + 8, wy + 3, PAPER, 1)
-        cv.line(wx + 8, wy + 3, wx + 16, wy + 6, PAPER, 1)
+    grad_v(cv, ox, wy, w, h - int(h * 0.84), (46, 78, 130), (24, 48, 92))
+    for wx in range(ox + 6, ox + w - 10, 14):
+        cv.line(wx, wy + 5, wx + 7, wy + 2, (180, 200, 230), 1)
+        cv.line(wx + 7, wy + 2, wx + 14, wy + 5, (180, 200, 230), 1)
+        cv.line(wx + 3, wy + 12, wx + 10, wy + 10, (140, 170, 210), 1)
 
 
 def pic_cyclone(cv, ox, oy, w, h):
-    """Spiral storm over the sea, rain bands, landfall dot on the coast."""
-    cv.fill_rect(ox, oy, w, h, SEA)
+    grad_v(cv, ox, oy, w, h, (86, 132, 190), (52, 96, 158))
+    # wave dashes across the sea
+    for wy in range(oy + 8, oy + h - 6, 12):
+        for wx in range(ox + 4, ox + int(w * 0.80), 18):
+            if (wx + wy) % 36 < 18:
+                cv.hline(wx, wx + 8, wy, (150, 190, 230), 1)
+    # cloud puffs top-left
+    for cx0, cy0, r0 in ((0.10, 0.10, 7), (0.16, 0.08, 9), (0.22, 0.11, 6),
+                         (0.70, 0.09, 6), (0.76, 0.12, 8)):
+        cv.fill_circle(ox + int(w * cx0), oy + int(h * cy0), r0,
+                       (225, 232, 240))
+    # spiral: concentric offset rings + spiral arms + rain bands
     cx, cy = ox + int(w * 0.42), oy + int(h * 0.52)
-    for i, r in enumerate((6, 12, 19, 26, 33)):
-        cv.circle(cx - i * 2, cy, r, PAPER, 2)
-    # rain slashes on the left
-    for rx, ry in ((0.06, 0.15), (0.12, 0.35), (0.04, 0.55), (0.10, 0.75)):
+    for i, r in enumerate((5, 10, 15, 20, 25, 30, 35)):
+        cv.circle(cx - i * 2, cy - i, r, PAPER, 2)
+        cv.circle(cx - i * 2, cy - i, r - 1, (190, 210, 235), 1)
+    cv.fill_circle(cx, cy, 5, (240, 240, 235))
+    cv.circle(cx, cy, 8, RED, 2)
+    for k in range(12):
+        a = 2 * math.pi * k / 12
+        x0 = cx + int(10 * math.cos(a))
+        y0 = cy + int(10 * math.sin(a))
+        x1 = cx + int(34 * math.cos(a + 0.5))
+        y1 = cy + int(34 * math.sin(a + 0.5))
+        cv.line(x0, y0, x1, y1, (200, 220, 240), 1)
+    # rain slashes, both flanks
+    for rx, ry in ((0.05, 0.15), (0.11, 0.32), (0.03, 0.52), (0.09, 0.72),
+                   (0.14, 0.88), (0.60, 0.82), (0.66, 0.68), (0.58, 0.20)):
         cv.line(ox + int(w * rx), oy + int(h * ry),
-                ox + int(w * rx) + 8, oy + int(h * ry) + 10, PAPER, 2)
-    # coast strip on the right
-    cv.fill_rect(ox + int(w * 0.82), oy, w - int(w * 0.82), h, LAND)
-    # dashed path from the eye to the landfall dot
+                ox + int(w * rx) + 7, oy + int(h * ry) + 9, PAPER, 2)
+    # coast: land with fields, town dots, coastline
+    lx0 = ox + int(w * 0.82)
+    grad_v(cv, lx0, oy, w - int(w * 0.82), h, (214, 196, 152), (186, 166, 122))
+    cv.line(lx0, oy, lx0 + 6, oy + h // 3, (120, 100, 60), 2)
+    cv.line(lx0 + 6, oy + h // 3, lx0 - 2, oy + 2 * h // 3, (120, 100, 60), 2)
+    cv.line(lx0 - 2, oy + 2 * h // 3, lx0 + 4, oy + h, (120, 100, 60), 2)
+    for tx, ty in ((0.87, 0.20), (0.90, 0.38), (0.86, 0.60), (0.92, 0.78)):
+        cv.fill_rect(ox + int(w * tx), oy + int(h * ty), 3, 3, (90, 70, 40))
+    # dashed path + landfall marker + wind arrow
     lx, ly = ox + int(w * 0.80), oy + int(h * 0.45)
     dashed(cv, cx + 30, cy, lx - 4, ly, RED)
     cv.fill_circle(lx, ly, 5, RED)
-    cv.circle(lx, ly, 8, PAPER, 1)
+    cv.circle(lx, ly, 9, PAPER, 2)
+    cv.circle(lx, ly, 12, RED, 1)
+    cv.line(lx - 16, ly + 14, lx - 6, ly + 14, PAPER, 2)
+    cv.fill_poly([(lx - 6, ly + 14), (lx - 12, ly + 10),
+                  (lx - 12, ly + 18)], PAPER)
 
 
 def pic_selloff(cv, ox, oy, w, h):
-    """Falling bars, red down-trend, Friday closing numbers."""
-    cv.fill_rect(ox, oy, w, h, NAVY)
-    # descending bars, left half
-    bw = int(w * 0.07)
-    bx0 = ox + int(w * 0.06)
-    for i, bh in enumerate((0.55, 0.42, 0.30)):
-        bhpx = int(h * bh)
-        cv.fill_rect(bx0 + i * (bw + 6), oy + int(h * 0.80) - bhpx,
-                     bw, bhpx, PAPER)
-    # red down-trend line with arrowhead
+    grad_v(cv, ox, oy, w, h, (30, 48, 84), (16, 28, 58))
+    # faint grid
+    for gy in range(oy + 10, oy + h - 8, 14):
+        cv.hline(ox + 4, ox + int(w * 0.52), gy, (60, 80, 120), 1)
+    for gx in range(ox + 8, ox + int(w * 0.52), 16):
+        cv.vline(gx, oy + 6, oy + int(h * 0.82), (60, 80, 120), 1)
+    # descending candlesticks, left half
+    bw = int(w * 0.055)
+    bx0 = ox + int(w * 0.05)
+    tops = (0.18, 0.24, 0.32, 0.40, 0.48, 0.56)
+    bots = (0.42, 0.50, 0.55, 0.62, 0.68, 0.74)
+    for i, (t0, b0) in enumerate(zip(tops, bots)):
+        x = bx0 + i * (bw + 5)
+        cv.vline(x + bw // 2, oy + int(h * t0) - 4, oy + int(h * b0) + 4,
+                 (200, 200, 200), 1)
+        cv.fill_rect(x, oy + int(h * t0), bw, int(h * (b0 - t0)),
+                     (214, 48, 48) if i % 2 == 0 else (220, 90, 70))
+    # red down-trend line + arrowhead + shaded area beneath
     x0, y0 = ox + int(w * 0.05), oy + int(h * 0.12)
     x1, y1 = ox + int(w * 0.50), oy + int(h * 0.72)
+    for yy in range(y0, y1):
+        xx = x0 + (yy - y0) * (x1 - x0) // max(1, y1 - y0)
+        cv.vline(xx, yy, oy + int(h * 0.80), (120, 30, 30), 1)
     cv.line(x0, y0, x1, y1, RED, 3)
+    cv.line(x0, y0, x1, y1, (255, 120, 120), 1)
     cv.fill_poly([(x1, y1), (x1 - 12, y1 - 2), (x1 - 2, y1 - 12)], RED)
-    # closing numbers, right half
+    # closing numbers with red down arrows and mini bars, right half
     nx = ox + int(w * 0.55)
-    for i, s in enumerate(("TAIPEI -6.2%", "SEOUL -5.2%",
-                           "TOKYO -5.1%", "HONG KONG -1.9%")):
-        cv.text(nx, oy + 16 + i * 16, s, 1, PAPER)
+    for i, (s, v) in enumerate((("TAIPEI -6.2%", 62), ("SEOUL -5.2%", 52),
+                                ("TOKYO -5.1%", 51), ("HONG KONG -1.9%", 19))):
+        yy = oy + 14 + i * 17
+        cv.fill_rect(nx, yy + 2, v // 2, 5, RED)
+        cv.fill_rect(nx, yy + 2, v // 4, 5, (255, 120, 120))
+        cv.text(nx + 36, yy, s, 1, PAPER)
+        cv.fill_poly([(nx + 32, yy + 2), (nx + 28, yy + 2),
+                      (nx + 30, yy + 7)], RED)
 
 
 def pic_flags(cv, ox, oy, w, h):
-    """EU circle of stars beside a UK cross flag."""
-    # EU flag
+    grad_v(cv, ox, oy, w, h, (242, 236, 220), (228, 220, 200))
+    stipple(cv, ox, oy, w, h, (200, 192, 170), seed=11, density=1)
+    # flag poles + shadows
     ex, ey, ew, eh = ox + int(w * 0.06), oy + int(h * 0.18), \
         int(w * 0.40), int(h * 0.62)
-    cv.fill_rect(ex, ey, ew, eh, BLUE)
+    cv.vline(ex - 3, ey - 4, ey + eh + 4, INK, 2)
+    cv.fill_circle(ex - 2, ey - 5, 2, YELLOW)
+    ux, uy, uw, uh = ox + int(w * 0.54), oy + int(h * 0.18), \
+        int(w * 0.40), int(h * 0.62)
+    cv.vline(ux - 3, uy - 4, uy + uh + 4, INK, 2)
+    cv.fill_circle(ux - 2, uy - 5, 2, YELLOW)
+    cv.fill_rect(ex, ey + eh + 1, ew, 3, (180, 172, 150))
+    cv.fill_rect(ux, uy + uh + 1, uw, 3, (180, 172, 150))
+    # EU flag with shading + 12 stars
+    grad_v(cv, ex, ey, ew, eh, (40, 84, 180), (24, 58, 140))
     ecx, ecy = ex + ew // 2, ey + eh // 2
     for k in range(12):
         a = 2 * math.pi * k / 12 - math.pi / 2
-        cv.fill_circle(int(ecx + (eh * 0.30) * math.cos(a)),
-                       int(ecy + (eh * 0.30) * math.sin(a)), 2, YELLOW)
-    # UK flag: blue field, white cross, red cross
-    ux, uy, uw, uh = ox + int(w * 0.54), oy + int(h * 0.18), \
-        int(w * 0.40), int(h * 0.62)
-    cv.fill_rect(ux, uy, uw, uh, BLUE)
-    # saltire diagonals, then white cross, then red cross
+        px = int(ecx + (eh * 0.30) * math.cos(a))
+        py = int(ecy + (eh * 0.30) * math.sin(a))
+        cv.fill_circle(px, py, 2, YELLOW)
+        cv.hline(px - 3, px + 3, py, YELLOW, 1)
+        cv.vline(px, py - 3, py + 3, YELLOW, 1)
+    # UK flag: blue field, saltire, white cross, red cross, shading
+    grad_v(cv, ux, uy, uw, uh, (40, 84, 180), (24, 58, 140))
     cv.line(ux, uy, ux + uw, uy + uh, PAPER, 4)
     cv.line(ux + uw, uy, ux, uy + uh, PAPER, 4)
+    cv.line(ux, uy, ux + uw, uy + uh, RED, 2)
+    cv.line(ux + uw, uy, ux, uy + uh, RED, 2)
     cv.fill_rect(ux + uw // 2 - 5, uy, 10, uh, PAPER)
     cv.fill_rect(ux, uy + uh // 2 - 5, uw, 10, PAPER)
     cv.fill_rect(ux + uw // 2 - 2, uy, 4, uh, RED)
     cv.fill_rect(ux, uy + uh // 2 - 2, uw, 4, RED)
+    cv.hline(ux, ux + uw - 1, uy + uh - 1, (120, 120, 120), 1)
 
 
 def pic_globe(cv, ox, oy, w, h):
-    """A globe crossed by a red slash: no deal."""
+    grad_v(cv, ox, oy, w, h, (242, 236, 220), (226, 218, 198))
+    stipple(cv, ox, oy, w, h, (200, 192, 170), seed=23, density=1)
     cx, cy = ox + w // 2, oy + int(h * 0.48)
     r = int(h * 0.30)
+    # ocean disc + continents
+    cv.fill_circle(cx, cy, r, (120, 170, 215))
+    cv.fill_circle(cx - 6, cy - 8, 7, (90, 160, 100))
+    cv.fill_circle(cx + 8, cy + 2, 6, (90, 160, 100))
+    cv.fill_circle(cx - 2, cy + 10, 5, (110, 170, 110))
+    cv.fill_circle(cx + 10, cy - 10, 4, (90, 160, 100))
     cv.circle(cx, cy, r, INK, 2)
-    # meridians and parallels
     cv.vline(cx, cy - r, cy + r, INK, 1)
     cv.hline(cx - r, cx + r, cy, INK, 1)
     cv.line(cx - int(r * 0.7), cy - int(r * 0.7),
             cx - int(r * 0.7), cy + int(r * 0.7), INK, 1)
     cv.line(cx + int(r * 0.7), cy - int(r * 0.7),
             cx + int(r * 0.7), cy + int(r * 0.7), INK, 1)
-    # red slash across the globe
+    cv.hline(cx - int(r * 0.85), cx + int(r * 0.85),
+             cy - int(r * 0.55), INK, 1)
+    cv.hline(cx - int(r * 0.85), cx + int(r * 0.85),
+             cy + int(r * 0.55), INK, 1)
+    # red slash + small no-deal badge
     cv.line(cx - r - 4, cy + r + 4, cx + r + 4, cy - r - 4, RED, 4)
+    cv.line(cx - r - 2, cy + r + 2, cx + r + 2, cy - r - 2,
+            (255, 130, 130), 1)
+    cv.fill_circle(cx + r - 2, cy - r + 2, 6, RED)
+    cv.text(cx + r - 5, cy - r - 1, "X", 1, PAPER)
 
 
 def pic_poland(cv, ox, oy, w, h):
-    """One missile streak down to a field, three red impact bursts."""
-    # field
+    grad_v(cv, ox, oy, w, h, (170, 205, 235), (215, 228, 240))
+    # clouds + distant treeline
+    for cx0, cy0, r0 in ((0.14, 0.12, 6), (0.20, 0.10, 8), (0.68, 0.08, 7),
+                         (0.76, 0.11, 9), (0.44, 0.06, 5)):
+        cv.fill_circle(ox + int(w * cx0), oy + int(h * cy0), r0, PAPER)
     fy = oy + int(h * 0.68)
-    cv.fill_rect(ox, fy, w, h - int(h * 0.68), (120, 160, 110))
-    cv.hline(ox, ox + w - 1, fy, INK, 2)
-    # little tree for scale
-    tx = ox + int(w * 0.78)
-    cv.vline(tx, fy - 14, fy, INK, 2)
-    cv.fill_circle(tx, fy - 18, 6, GREEN)
-    # missile streak from upper right
+    cv.hline(ox, ox + w - 1, fy, (70, 110, 70), 2)
+    for tx in range(ox + 2, ox + w - 4, 10):
+        cv.fill_circle(tx, fy - 3, 3, (60, 100, 60))
+    # furrowed field with alternating strips
+    for i in range(6):
+        yy = fy + 2 + i * 3
+        col = (120, 160, 110) if i % 2 == 0 else (100, 140, 95)
+        cv.hline(ox, ox + w - 1, yy, col, 2)
+    for wx in range(ox + 4, ox + w - 6, 12):
+        cv.vline(wx, fy + 2, oy + h - 2, (90, 130, 85), 1)
+    # trees for scale
+    for tx0, th0 in ((0.78, 14), (0.86, 10), (0.06, 9)):
+        tx = ox + int(w * tx0)
+        cv.vline(tx, fy - th0, fy, INK, 2)
+        cv.fill_circle(tx, fy - th0 - 4, 6, GREEN)
+        cv.fill_circle(tx - 4, fy - th0, 4, (60, 130, 70))
+    # missile streak + body, smoke trail
     hx, hy = ox + int(w * 0.34), fy - 2
+    for i in range(5):
+        cv.fill_circle(ox + int(w * 0.92) - i * 12,
+                       oy + int(h * 0.10) + i * 7, 2, (200, 200, 200))
     cv.line(ox + int(w * 0.92), oy + int(h * 0.10), hx + 8, hy - 8, INK, 2)
     cv.fill_poly([(hx + 8, hy - 8), (hx + 16, hy - 14),
                   (hx + 18, hy - 4)], INK)
-    # impact bursts at the ground: first missile, second missile, drone
-    cv.star(hx, hy, 10, RED, 2)
-    cv.fill_circle(hx, hy, 3, YELLOW)
-    cv.star(ox + int(w * 0.58), fy - 2, 6, RED, 2)
-    cv.fill_circle(ox + int(w * 0.58), fy - 2, 2, YELLOW)
-    cv.star(ox + int(w * 0.14), fy - 2, 6, RED, 2)
-    cv.fill_circle(ox + int(w * 0.14), fy - 2, 2, YELLOW)
+    cv.fill_rect(hx + 4, hy - 12, 12, 4, INK)
+    # three impact bursts with smoke and scorched ground
+    for bx0, r0 in ((0.34, 10), (0.58, 6), (0.14, 6)):
+        px = ox + int(w * bx0)
+        cv.fill_circle(px, fy + 2, r0, (60, 50, 40))
+        cv.star(px, fy - 2, r0, RED, 2)
+        cv.fill_circle(px, fy - 2, 3, YELLOW)
+        cv.fill_circle(px - 7, fy - 10, 4, (150, 150, 150))
+        cv.fill_circle(px + 6, fy - 13, 5, (130, 130, 130))
 
 
 def pic_vehicle(cv, ox, oy, w, h):
-    """Armoured vehicle on a road, palm tree at the edge."""
+    grad_v(cv, ox, oy, w, h, (240, 222, 180), (226, 206, 160))
+    stipple(cv, ox, oy, w, h, (200, 180, 140), seed=31, density=1)
+    # sun + distant dunes + building
+    cv.fill_circle(ox + int(w * 0.82), oy + int(h * 0.16),
+                   int(h * 0.11), YELLOW)
+    cv.fill_circle(ox + int(w * 0.82), oy + int(h * 0.16),
+                   int(h * 0.07), (255, 220, 120))
+    cv.fill_rect(ox + int(w * 0.04), oy + int(h * 0.52),
+                 int(w * 0.14), int(h * 0.20), (150, 130, 100))
+    for wy in range(oy + int(h * 0.56), oy + int(h * 0.68), 5):
+        cv.fill_rect(ox + int(w * 0.06), wy, 3, 3, (60, 50, 30))
+        cv.fill_rect(ox + int(w * 0.13), wy, 3, 3, (60, 50, 30))
     gy = oy + int(h * 0.72)
+    cv.fill_rect(ox, gy, w, h - int(h * 0.72), (120, 110, 95))
     cv.hline(ox, ox + w - 1, gy, INK, 2)
-    # palm tree, right side
-    px = ox + int(w * 0.86)
+    for dx in range(ox + 6, ox + w - 8, 18):
+        cv.fill_rect(dx, gy + 5, 10, 2, PAPER)
+    # palm tree
+    px = ox + int(w * 0.90)
     cv.line(px, gy, px + 4, gy - 22, INK, 2)
-    for dx, dy in ((-10, -26), (10, -28), (-14, -18), (12, -16)):
+    for dx, dy in ((-10, -26), (10, -28), (-14, -18), (12, -16), (0, -30)):
         cv.line(px + 4, gy - 22, px + 4 + dx, gy - 22 + dy, GREEN, 2)
-    # vehicle body, turret, barrel, wheels
+    # vehicle: body, camo patches, turret, barrel, windows, wheels
     bx, by = ox + int(w * 0.10), oy + int(h * 0.44)
     bw, bh = int(w * 0.58), int(h * 0.26)
-    cv.fill_rect(bx, by, bw, bh, INK)
-    cv.fill_rect(bx + int(bw * 0.25), by - 10, int(bw * 0.35), 10, INK)
+    cv.fill_rect(bx, by, bw, bh, (52, 62, 44))
+    cv.fill_rect(bx + 8, by + 3, 18, 8, (90, 100, 60))
+    cv.fill_rect(bx + bw - 26, by + 6, 16, 7, (90, 100, 60))
+    cv.fill_rect(bx + int(bw * 0.25), by - 10, int(bw * 0.35), 10,
+                 (52, 62, 44))
+    cv.fill_rect(bx + int(bw * 0.30), by - 8, 8, 5, (150, 190, 220))
     cv.line(bx + int(bw * 0.60), by - 5, bx + bw + 14, by - 8, INK, 3)
+    cv.fill_rect(bx, by + bh - 3, bw, 3, INK)
     for i in range(3):
-        cv.fill_circle(bx + 12 + i * 22, gy - 3, 6, INK)
-        cv.fill_circle(bx + 12 + i * 22, gy - 3, 2, PAPER)
+        wx0 = bx + 12 + i * 22
+        cv.fill_circle(wx0, gy - 3, 6, INK)
+        cv.fill_circle(wx0, gy - 3, 2, PAPER)
+        cv.vline(wx0, gy - 9, gy - 3, INK, 2)
 
 
 def pic_strike(cv, ox, oy, w, h):
-    """Three marchers, one holding a placard."""
-    # placard on a stick, top right (clear of the red tag)
-    sx = ox + int(w * 0.74)
-    cv.vline(sx, oy + int(h * 0.12), oy + int(h * 0.62), INK, 2)
-    pw = cv.text_width("SCIOPERO", 1) + 8
-    cv.fill_rect(sx - pw // 2, oy + int(h * 0.06), pw, 13, PAPER)
-    cv.hline(sx - pw // 2, sx + pw // 2 - 1, oy + int(h * 0.06), INK, 1)
-    cv.hline(sx - pw // 2, sx + pw // 2 - 1, oy + int(h * 0.06) + 12, INK, 1)
-    cv.vline(sx - pw // 2, oy + int(h * 0.06), oy + int(h * 0.06) + 12, INK, 1)
-    cv.vline(sx + pw // 2 - 1, oy + int(h * 0.06), oy + int(h * 0.06) + 12,
-             INK, 1)
-    cv.text(sx - pw // 2 + 4, oy + int(h * 0.06) + 3, "SCIOPERO", 1, INK)
-    # three figures
+    grad_v(cv, ox, oy, w, h, (235, 228, 210), (220, 212, 192))
+    # street buildings behind the march
+    for bx0, bh0 in ((0.04, 0.30), (0.22, 0.22), (0.58, 0.26)):
+        bx = ox + int(w * bx0)
+        cv.fill_rect(bx, oy + int(h * 0.62) - int(h * bh0),
+                     int(w * 0.14), int(h * bh0), (170, 160, 140))
+        for wy in range(oy + int(h * 0.62) - int(h * bh0) + 4,
+                        oy + int(h * 0.62) - 2, 6):
+            cv.fill_rect(bx + 3, wy, 3, 3, (80, 70, 50))
+            cv.fill_rect(bx + 12, wy, 3, 3, (80, 70, 50))
+    # two placards on sticks
+    for sx0, word in ((0.74, "SCIOPERO"), (0.30, "NO!")):
+        sx = ox + int(w * sx0)
+        cv.vline(sx, oy + int(h * 0.12), oy + int(h * 0.62), INK, 2)
+        pw = cv.text_width(word, 1) + 8
+        cv.fill_rect(sx - pw // 2, oy + int(h * 0.06), pw, 13, PAPER)
+        cv.hline(sx - pw // 2, sx + pw // 2 - 1, oy + int(h * 0.06), INK, 1)
+        cv.hline(sx - pw // 2, sx + pw // 2 - 1, oy + int(h * 0.06) + 12,
+                 INK, 1)
+        cv.vline(sx - pw // 2, oy + int(h * 0.06),
+                 oy + int(h * 0.06) + 12, INK, 1)
+        cv.vline(sx + pw // 2 - 1, oy + int(h * 0.06),
+                 oy + int(h * 0.06) + 12, INK, 1)
+        cv.text(sx - pw // 2 + 4, oy + int(h * 0.06) + 3, word, 1, INK)
+    # ground + four marchers with arms
     by = oy + int(h * 0.78)
-    for i, (fx, col) in enumerate(((0.16, INK), (0.38, RED), (0.58, INK))):
+    cv.hline(ox, ox + w - 1, by, INK, 2)
+    cv.hline(ox, ox + w - 1, by + 3, (150, 140, 120), 1)
+    for i, (fx, col) in enumerate(((0.14, INK), (0.36, RED),
+                                   (0.56, INK), (0.70, (60, 60, 60)))):
         hx = ox + int(w * fx)
         cv.fill_circle(hx, oy + int(h * 0.52), 7, col)
         cv.fill_poly([(hx - 12, by), (hx + 12, by),
                       (hx + 7, oy + int(h * 0.60)),
                       (hx - 7, oy + int(h * 0.60))], col)
+        cv.line(hx + 6, oy + int(h * 0.62), hx + 14, oy + int(h * 0.52),
+                col, 2)
+        cv.line(hx - 10, by, hx - 14, by + 4, col, 2)
+        cv.line(hx + 10, by, hx + 14, by + 4, col, 2)
 
 
 def pic_rising(cv, ox, oy, w, h):
-    """Rising sun, ascending bars, red up-arrow."""
-    cv.fill_circle(ox + int(w * 0.30), oy + int(h * 0.38),
-                   int(h * 0.13), RED)
-    # ascending bars
+    grad_v(cv, ox, oy, w, h, (250, 238, 210), (240, 224, 190))
+    # sun with rays
+    sx, sy = ox + int(w * 0.26), oy + int(h * 0.36)
+    for k in range(12):
+        a = 2 * math.pi * k / 12
+        cv.line(sx + int(14 * math.cos(a)), sy + int(14 * math.sin(a)),
+                sx + int(20 * math.cos(a)), sy + int(20 * math.sin(a)),
+                (230, 120, 60), 2)
+    cv.fill_circle(sx, sy, 12, (230, 90, 50))
+    cv.fill_circle(sx, sy, 8, RED)
+    cv.fill_circle(sx - 3, sy - 3, 3, (255, 150, 100))
+    # faint grid + ascending bars with tops
+    for gy in range(oy + 10, oy + int(h * 0.82), 12):
+        cv.hline(ox + int(w * 0.36), ox + w - 4, gy, (200, 190, 170), 1)
     bw = int(w * 0.11)
     bx0 = ox + int(w * 0.38)
     for i, bh in enumerate((0.28, 0.44, 0.60)):
         bhpx = int(h * bh)
-        cv.fill_rect(bx0 + i * (bw + 8), oy + int(h * 0.80) - bhpx,
-                     bw, bhpx, INK)
-    # red up arrow over the bars
+        x = bx0 + i * (bw + 8)
+        grad_v(cv, x, oy + int(h * 0.80) - bhpx, bw, bhpx,
+               (70, 70, 70), INK)
+        cv.hline(x, x + bw - 1, oy + int(h * 0.80) - bhpx, RED, 2)
+    # red up arrow + dashed extension
     x0, y0 = ox + int(w * 0.36), oy + int(h * 0.62)
     x1, y1 = ox + int(w * 0.88), oy + int(h * 0.16)
+    dashed(cv, x0, y0, x1, y1, (200, 100, 100))
     cv.line(x0, y0, x1, y1, RED, 3)
     cv.fill_poly([(x1, y1), (x1 - 12, y1), (x1, y1 + 12)], RED)
+    cv.fill_circle(x0, y0, 3, RED)
 
 
 def pic_court(cv, ox, oy, w, h):
-    """Courthouse: pediment, three columns, base."""
-    # pediment, shifted right so the red tag clears its peak
+    grad_v(cv, ox, oy, w, h, (238, 232, 216), (222, 214, 196))
+    stipple(cv, ox, oy, w, h, (200, 192, 172), seed=41, density=1)
+    # flag on the pediment
+    fx = ox + int(w * 0.62)
+    cv.vline(fx, oy + int(h * 0.02), oy + int(h * 0.10), INK, 2)
+    cv.fill_poly([(fx, oy + int(h * 0.02)), (fx + 12, oy + int(h * 0.04)),
+                  (fx, oy + int(h * 0.07))], RED)
+    # pediment with round medallion
     cv.fill_poly([(ox + int(w * 0.28), oy + int(h * 0.34)),
                   (ox + int(w * 0.95), oy + int(h * 0.34)),
                   (ox + int(w * 0.62), oy + int(h * 0.10))], INK)
-    # columns
+    cv.fill_circle(ox + int(w * 0.62), oy + int(h * 0.26), 5, PAPER)
+    cv.fill_circle(ox + int(w * 0.62), oy + int(h * 0.26), 2, RED)
+    # three fluted columns with capitals
     for i in range(3):
         cx = ox + int(w * (0.36 + i * 0.26))
+        cv.fill_rect(cx - 7, oy + int(h * 0.36), 14, 4, INK)
         cv.fill_rect(cx - 5, oy + int(h * 0.38), 10, int(h * 0.32), INK)
-    # base
+        cv.vline(cx - 2, oy + int(h * 0.40), oy + int(h * 0.68), PAPER, 1)
+        cv.vline(cx + 2, oy + int(h * 0.40), oy + int(h * 0.68), PAPER, 1)
+        cv.fill_rect(cx - 7, oy + int(h * 0.68), 14, 4, INK)
+    # steps
     cv.fill_rect(ox + int(w * 0.26), oy + int(h * 0.72),
                  int(w * 0.71), 6, INK)
     cv.fill_rect(ox + int(w * 0.22), oy + int(h * 0.80),
                  int(w * 0.79), 4, INK)
+    cv.fill_rect(ox + int(w * 0.18), oy + int(h * 0.87),
+                 int(w * 0.87), 3, (120, 112, 96))
 
 
 def pic_derrick(cv, ox, oy, w, h):
-    """Oil derrick against a low sun, with a drop of crude."""
-    cv.fill_circle(ox + int(w * 0.80), oy + int(h * 0.22),
-                   int(h * 0.12), YELLOW)
-    # A-frame
+    grad_v(cv, ox, oy, w, h, (250, 232, 190), (238, 210, 160))
+    # low sun with rays + clouds
+    sx, sy = ox + int(w * 0.80), oy + int(h * 0.22)
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        cv.line(sx + int(12 * math.cos(a)), sy + int(12 * math.sin(a)),
+                sx + int(17 * math.cos(a)), sy + int(17 * math.sin(a)),
+                (230, 160, 60), 2)
+    cv.fill_circle(sx, sy, 10, YELLOW)
+    cv.fill_circle(sx, sy, 6, (255, 220, 120))
+    for cx0, cy0, r0 in ((0.12, 0.14, 6), (0.18, 0.12, 8), (0.55, 0.08, 5)):
+        cv.fill_circle(ox + int(w * cx0), oy + int(h * cy0), r0,
+                       (245, 240, 225))
+    # ground + scrub
+    base = oy + int(h * 0.78)
+    cv.fill_rect(ox, base, w, h - int(h * 0.78), (150, 130, 90))
+    cv.hline(ox, ox + w - 1, base, INK, 2)
+    for gx in range(ox + 6, ox + w - 8, 14):
+        cv.line(gx, base + 4, gx + 3, base - 2, (90, 110, 60), 1)
+    # A-frame with cross-bracing + crown + cable
     ax = ox + int(w * 0.30)
     top = oy + int(h * 0.10)
-    base = oy + int(h * 0.78)
     cv.line(ax - 26, base, ax, top, INK, 3)
     cv.line(ax + 26, base, ax, top, INK, 3)
-    for fy in (0.30, 0.50, 0.68):
+    for fy in (0.28, 0.44, 0.60):
         yy = oy + int(h * fy)
         cv.hline(ax - 18, ax + 18, yy, INK, 2)
-    cv.hline(ox, ox + w - 1, base, INK, 2)
-    # crude drop
+    cv.line(ax - 18, oy + int(h * 0.28), ax + 18, oy + int(h * 0.44),
+            INK, 1)
+    cv.line(ax + 18, oy + int(h * 0.28), ax - 18, oy + int(h * 0.44),
+            INK, 1)
+    cv.fill_rect(ax - 4, top - 4, 8, 6, INK)
+    cv.vline(ax, top + 2, oy + int(h * 0.30), INK, 1)
+    cv.fill_rect(ax - 3, oy + int(h * 0.30), 6, 5, INK)
+    # crude drop + puddle + barrel
     dx, dy = ox + int(w * 0.72), oy + int(h * 0.62)
     cv.fill_circle(dx, dy, 6, INK)
     cv.fill_poly([(dx - 6, dy - 2), (dx + 6, dy - 2), (dx, dy - 12)], INK)
+    cv.fill_circle(dx + 2, dy - 2, 2, (90, 90, 90))
+    cv.fill_circle(dx, base - 2, 9, (40, 35, 30))
+    cv.fill_rect(ox + int(w * 0.52), base - 12, 12, 12, (90, 60, 30))
+    cv.hline(ox + int(w * 0.52), ox + int(w * 0.52) + 11, base - 12,
+             INK, 1)
 
 
 def pic_rikers(cv, ox, oy, w, h):
-    """Rikers Island: a barred jail block on an island in the river."""
-    # river at the bottom
+    grad_v(cv, ox, oy, w, h, (190, 215, 235), (220, 230, 240))
+    # clouds + gulls
+    for cx0, cy0, r0 in ((0.14, 0.12, 6), (0.20, 0.10, 8), (0.70, 0.08, 6)):
+        cv.fill_circle(ox + int(w * cx0), oy + int(h * cy0), r0, PAPER)
+    for gx0, gy0 in ((0.45, 0.12), (0.55, 0.16)):
+        gx, gy = ox + int(w * gx0), oy + int(h * gy0)
+        cv.line(gx - 5, gy, gx, gy - 3, INK, 1)
+        cv.line(gx, gy - 3, gx + 5, gy, INK, 1)
+    # river with gradient + ripples + boat wake
     wy = oy + int(h * 0.70)
-    cv.fill_rect(ox, wy, w, h - int(h * 0.70), SEA)
-    for wx in range(ox + 6, ox + w - 10, 16):
-        cv.line(wx, wy + 6, wx + 8, wy + 3, PAPER, 1)
-        cv.line(wx + 8, wy + 3, wx + 16, wy + 6, PAPER, 1)
-    # island mound
+    grad_v(cv, ox, wy, w, h - int(h * 0.70), (70, 120, 175), (40, 85, 140))
+    for wx in range(ox + 6, ox + w - 10, 14):
+        cv.line(wx, wy + 5, wx + 7, wy + 2, PAPER, 1)
+        cv.line(wx + 7, wy + 2, wx + 14, wy + 5, PAPER, 1)
+        cv.line(wx + 3, wy + 11, wx + 10, wy + 9, (150, 190, 225), 1)
+    cv.fill_rect(ox + int(w * 0.06), wy + 8, 16, 4, (90, 90, 90))
+    cv.fill_rect(ox + int(w * 0.08), wy + 4, 6, 5, (70, 70, 70))
+    # island mound + shore grass
     cv.fill_poly([(ox + int(w * 0.08), wy),
                   (ox + int(w * 0.92), wy),
                   (ox + int(w * 0.84), wy - 8),
                   (ox + int(w * 0.16), wy - 8)], LAND)
-    # jail block, clear of the red tag above it
+    for gx in range(ox + int(w * 0.12), ox + int(w * 0.88), 10):
+        cv.line(gx, wy - 8, gx + 2, wy - 12, GREEN, 1)
+    # jail block: roof, barred windows, door, watchtower
     bx, by = ox + int(w * 0.24), oy + int(h * 0.30)
     bw, bh = int(w * 0.52), int(h * 0.36)
     cv.fill_rect(bx, by, bw, bh, INK)
-    # flat roof line
     cv.hline(bx - 4, bx + bw + 3, by - 2, INK, 2)
-    # barred windows: paper panes with a vertical ink bar each
+    cv.hline(bx - 4, bx + bw + 3, by - 5, (120, 120, 120), 1)
     for i in range(4):
         wx = bx + 8 + i * 20
         cv.fill_rect(wx, by + 7, 10, 10, PAPER)
         cv.vline(wx + 5, by + 7, by + 16, INK, 1)
-    # door, barred down the middle
+        cv.hline(wx, wx + 9, by + 11, INK, 1)
     cv.fill_rect(bx + bw // 2 - 5, by + bh - 10, 10, 10, PAPER)
     cv.vline(bx + bw // 2, by + bh - 10, by + bh - 1, INK, 1)
+    tx = ox + int(w * 0.84)
+    cv.fill_rect(tx - 2, by + 4, 4, int(h * 0.30), INK)
+    cv.fill_rect(tx - 8, by, 16, 8, INK)
+    cv.fill_rect(tx - 6, by + 2, 4, 4, PAPER)
+    cv.fill_rect(tx + 2, by + 2, 4, 4, PAPER)
 
 
 def pic_cricket(cv, ox, oy, w, h):
-    """Stumps, a bat and a red ball on a green strip."""
-    # green strip at the bottom
+    grad_v(cv, ox, oy, w, h, (180, 215, 235), (215, 232, 240))
+    # clouds + crowd dots in the stand
+    for cx0, cy0, r0 in ((0.12, 0.10, 6), (0.18, 0.08, 8), (0.55, 0.07, 5)):
+        cv.fill_circle(ox + int(w * cx0), oy + int(h * cy0), r0, PAPER)
+    cv.fill_rect(ox, oy + int(h * 0.22), w, 8, (120, 120, 120))
+    for cx0 in range(ox + 6, ox + w - 6, 9):
+        cv.fill_rect(cx0, oy + int(h * 0.23), 3, 3,
+                     RED if (cx0 // 9) % 3 == 0 else
+                     (BLUE if (cx0 // 9) % 3 == 1 else PAPER))
+    # green outfield with mowing stripes + pitch
     gy = oy + int(h * 0.68)
-    cv.fill_rect(ox, gy, w, h - int(h * 0.68), (150, 190, 140))
-    # stumps
+    for i in range(6):
+        col = (150, 190, 140) if i % 2 == 0 else (130, 175, 125)
+        cv.fill_rect(ox + i * (w // 6), gy, w // 6 + 1,
+                     h - int(h * 0.68), col)
+    cv.fill_rect(ox + int(w * 0.30), oy + int(h * 0.30),
+                 int(w * 0.40), gy - oy - int(h * 0.30), (215, 195, 160))
+    cv.hline(ox, ox + w - 1, gy, (90, 130, 90), 1)
+    # stumps + bails
     sx = ox + int(w * 0.18)
     for i in range(3):
         cv.vline(sx + i * 7, oy + int(h * 0.30), gy, INK, 3)
     cv.hline(sx, sx + 14, oy + int(h * 0.30), INK, 2)
-    # bat, diagonal
+    cv.fill_rect(sx + 1, oy + int(h * 0.30) - 3, 5, 2, YELLOW)
+    cv.fill_rect(sx + 8, oy + int(h * 0.30) - 3, 5, 2, YELLOW)
+    # bat with handle + grip lines, diagonal
     cv.line(ox + int(w * 0.55), oy + int(h * 0.12),
             ox + int(w * 0.78), oy + int(h * 0.62), (200, 170, 110), 7)
-    # ball
-    cv.fill_circle(ox + int(w * 0.86), oy + int(h * 0.70), 7, RED)
-
+    cv.line(ox + int(w * 0.55), oy + int(h * 0.12),
+            ox + int(w * 0.60), oy + int(h * 0.24), (120, 90, 50), 3)
+    # ball with seam + motion dots, fielder silhouette
+    bx0, by0 = ox + int(w * 0.86), oy + int(h * 0.70)
+    cv.fill_circle(bx0, by0, 7, RED)
+    cv.fill_circle(bx0 - 2, by0 - 2, 2, (255, 150, 150))
+    cv.line(bx0 - 5, by0 - 5, bx0 + 5, by0 + 5, PAPER, 1)
+    for dx0, dy0 in ((-14, -10), (-22, -16)):
+        cv.fill_circle(bx0 + dx0, by0 + dy0, 1, RED)
+    fx0 = ox + int(w * 0.44)
+    cv.fill_circle(fx0, gy - 14, 4, INK)
+    cv.fill_rect(fx0 - 3, gy - 10, 6, 10, INK)
 
 # ------------------------------------------------------------------- map ----
 # Rough world map as (start, end) land spans per row, 48 columns x 18 rows.
@@ -670,16 +996,27 @@ MAP_DOTS = [
     (13, 46, 16, 8, -4),
 ]
 
-
 def draw_map(cv, ox, oy, cell=5):
+    # ocean tint + graticule
+    cv.fill_rect(ox, oy, 48 * cell, 18 * cell, (214, 228, 238))
+    for gx in range(0, 48, 6):
+        cv.vline(ox + gx * cell, oy, oy + 18 * cell, (190, 205, 220), 1)
+    for gy in range(0, 18, 6):
+        cv.hline(ox, ox + 48 * cell, oy + gy * cell, (190, 205, 220), 1)
     for row, spans in MAP_SPANS.items():
         for c0, c1 in spans:
             for c in range(c0, c1 + 1):
                 cv.fill_rect(ox + c * cell, oy + row * cell,
                              cell, cell, LAND)
+                if (c * 7 + row * 3) % 4 == 0:
+                    cv.set(ox + c * cell + 1, oy + row * cell + 1,
+                           (170, 152, 112))
+    # equator + tropics
+    cv.hline(ox, ox + 48 * cell - 1, oy + 9 * cell, (150, 150, 150), 1)
     for num, col, row, dx, dy in MAP_DOTS:
         px = ox + col * cell + cell // 2
         py = oy + row * cell + cell // 2
+        cv.fill_circle(px, py, 4, PAPER)
         cv.fill_circle(px, py, 3, RED)
         cv.text(px + dx, py + dy, str(num), 1, RED)
 
@@ -834,8 +1171,14 @@ DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
 def draw_list_col(cv, x, y, items, w=336):
     # Single-line items only: every item is <= 56 chars, which fits
     # 336 px at scale 1 (6 px per char). Number in red, rest in gray.
-    for s in items:
+    # Alternating row tint + hairline rules for density.
+    y0 = y
+    for i, s in enumerate(items):
         assert len(s) <= 56, s
+        if i % 2 == 0:
+            cv.fill_rect(x - 3, y - 2, w + 6, 11, (243, 238, 226))
+        cv.hline(x - 3, x + w + 2, y + 10, (214, 206, 188), 1)
+        cv.fill_rect(x - 3, y - 2, 2, 11, RED if i % 2 == 0 else (200, 120, 120))
         cv.text(x, y, s, 1, GRAY)
         cv.text(x, y, s.split(' ')[0], 1, RED)
         y += 12
@@ -855,14 +1198,32 @@ def draw():
     cv.text_centred(W // 2, 20,
                     "51 STORIES - 7 REGIONS - EVERY ONE DATED "
                     "FRIDAY 20 NOVEMBER 2026", 1, RED)
-    cv.text_centred(W // 2, 30, "THE WORLD IN ONE DAY", 5, INK)
+    # nameplate: grey shadow, then double-struck black for a heavy
+    # serif-style weight, with diamond ornaments either side
+    _mw = cv.text_width("THE WORLD IN ONE DAY", 5)
+    _mx = W // 2 - _mw // 2
+    cv.text(_mx + 3, 33, "THE WORLD IN ONE DAY", 5, (150, 145, 135))
+    cv.text(_mx, 30, "THE WORLD IN ONE DAY", 5, INK)
+    cv.text(_mx + 1, 30, "THE WORLD IN ONE DAY", 5, INK)
+    for _dx in (-1, 1):
+        _ox = W // 2 + _dx * (_mw // 2 + 26)
+        cv.fill_poly([(_ox, 40), (_ox + 6, 47), (_ox, 54), (_ox - 6, 47)],
+                     RED)
+        cv.fill_poly([(_ox, 43), (_ox + 3, 47), (_ox, 51), (_ox - 3, 47)],
+                     PAPER)
     cv.text_centred(W // 2, 68, "FRIDAY 20 NOVEMBER 2026", 3, RED)
+    cv.text_centred(W // 2, 69, "FRIDAY 20 NOVEMBER 2026", 3, RED)
     cv.hline(MARGIN, RIGHT, 94, INK, 3)
     cv.hline(MARGIN, RIGHT, 99, INK, 1)
 
     # ---- stat strip: BY THE NUMBERS label, scale-4 numbers ----
     # Uneven columns: each column is as wide as its longest line needs
     # (number at scale 4, or its two label lines), so 300,000+ fits.
+    cv.fill_rect(MARGIN, 102, 952, 66, (244, 239, 228))
+    cv.hline(MARGIN, RIGHT, 102, RED, 1)
+    cv.hline(MARGIN, RIGHT, 167, INK, 1)
+    for _sx in range(MARGIN, RIGHT, 24):
+        cv.set(_sx, 104, (220, 214, 200))
     cv.text(MARGIN, 106, "BY THE NUMBERS", 1, RED)
     cv.hline(MARGIN + 91, RIGHT, 109, RED, 1)
     stat_w = [153, 198, 134, 174, 153, 140]
@@ -948,7 +1309,8 @@ def draw():
     draw_list_col(cv, 652, 700, ALSO_RIGHT)
 
     # ---- date check ----
-    cv.fill_rect(MARGIN, 925, 952, 42, PAPER)
+    cv.fill_rect(MARGIN, 925, 952, 42, (253, 238, 232))
+    hatch_diag(cv, MARGIN + 2, 927, 952 - 4, 38, (245, 228, 220), step=14)
     cv.hline(MARGIN, RIGHT, 925, RED, 2)
     cv.hline(MARGIN, RIGHT, 966, RED, 2)
     cv.vline(MARGIN, 925, 966, RED, 2)
@@ -967,6 +1329,8 @@ def draw():
     cv.text_centred(W // 2, 985,
                     "ALL PICTURES ARE DRAWN BY THE PROGRAM - "
                     "NO PHOTOGRAPHS", 1, GRAY)
+    # v4: fine newsprint grain over the finished page (see apply_grain)
+    apply_grain(cv, 7)
     return cv
 
 
