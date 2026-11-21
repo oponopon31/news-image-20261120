@@ -13,22 +13,38 @@ Layout: 35 stories in 7 regions, every one dated Friday 20 November 2026.
   MID     4 UK-EU reset deal -- 5 COP31 no deal -- 6 missile in Poland --
           7 Iraqi army in -- 8 Italy general strike
   LOW     9 Japan inflation -- 10 Seoul impeach -- 11 Kenya first oil --
-          12 Bukele third term -- 13 Phillips 118
+          12 Rikers closure plan -- 13 Phillips 118
   ALSO    14-35: two-column list of 22 more stories, numbered on the map.
   DATE CHECK: stories deliberately left out because they are
   Thursday 19 November news -- the World Court's ruling on Myanmar,
   the three-leader declaration in Shenzhen, Tonga's drought emergency
-  and the migrant boat lost off Senegal. Not yet shown: BepiColombo's
-  entry into orbit round Mercury and any final COP31 text.
+  and the migrant boat lost off Senegal. Not yet shown: BepiColombo,
+  which enters orbit round Mercury on 21 November (19:24 CET), and
+  any final COP31 text -- none was adopted on 20 November.
+
+  v2 (21 Nov 2026): three Thursday stories that v1 carried are out
+  (Bukele's filing, the Uganda Ebola rally ban, the Democrats'
+  law-firm query); Poland, Moscow, Lebanon, debt-distress and ASX
+  items corrected; three 20-November-verified replacements in
+  (Rikers plan, Congo Ebola schools, Davies cyber director). The
+  ATP player-pay plan appears once, as a single item.
 
 Facts follow the 35-story reference page for 20 November 2026; the
 load-bearing claims were re-verified against live reporting on
 21 Nov 2026: Akvan landfall near Gopalpur 07:30-08:30 IST 20 Nov,
 300,000+ evacuated, no deaths (IMD); Taiex -6.23% on 20 Nov, worst
 week since 1991, Nikkei -5.1%, KOSPI -5.2%, Hang Seng -1.9%
-(Reuters/AP); Kh-101 cruise missile down near Nowy Lipowiec, Poland,
-on 20 Nov, Rzeszow airport briefly suspended (Polish defence
-ministry). All drawings are original geometric work in code.
+(Reuters/AP); two Russian missiles and a jet drone down in
+south-eastern Poland on 20 Nov -- a Kh-101 near Nowy Lipowiec, a
+second missile near Rudnik nad Sanem, drone debris at Molodycz --
+no one hurt, only Rzeszow-Jasionka airport briefly suspended
+(Polish defence ministry, Reuters); S&P/ASX 200 down 1.6% to
+8,592.6 on 20 Nov (Dow Jones Newswires); Mamdani's Rikers plan
+unveiled on Friday 20 Nov (Reuters, AP); Ebola reported in nearly
+100 schools in eastern Congo, official data released Friday
+(Anadolu); the White House announced Kirsten Davies as national
+cyber director on Friday (Bloomberg). All drawings are original
+geometric work in code.
 """
 import hashlib
 import math
@@ -442,7 +458,7 @@ def pic_globe(cv, ox, oy, w, h):
 
 
 def pic_poland(cv, ox, oy, w, h):
-    """Missile streak down to a field, red impact burst."""
+    """One missile streak down to a field, three red impact bursts."""
     # field
     fy = oy + int(h * 0.68)
     cv.fill_rect(ox, fy, w, h - int(h * 0.68), (120, 160, 110))
@@ -456,9 +472,13 @@ def pic_poland(cv, ox, oy, w, h):
     cv.line(ox + int(w * 0.92), oy + int(h * 0.10), hx + 8, hy - 8, INK, 2)
     cv.fill_poly([(hx + 8, hy - 8), (hx + 16, hy - 14),
                   (hx + 18, hy - 4)], INK)
-    # impact burst at the ground
+    # impact bursts at the ground: first missile, second missile, drone
     cv.star(hx, hy, 10, RED, 2)
     cv.fill_circle(hx, hy, 3, YELLOW)
+    cv.star(ox + int(w * 0.58), fy - 2, 6, RED, 2)
+    cv.fill_circle(ox + int(w * 0.58), fy - 2, 2, YELLOW)
+    cv.star(ox + int(w * 0.14), fy - 2, 6, RED, 2)
+    cv.fill_circle(ox + int(w * 0.14), fy - 2, 2, YELLOW)
 
 
 def pic_vehicle(cv, ox, oy, w, h):
@@ -559,27 +579,33 @@ def pic_derrick(cv, ox, oy, w, h):
     cv.fill_poly([(dx - 6, dy - 2), (dx + 6, dy - 2), (dx, dy - 12)], INK)
 
 
-def pic_ballot(cv, ox, oy, w, h):
-    """Ballot box with a paper in the slot and a red tick."""
-    bx, by = ox + int(w * 0.22), oy + int(h * 0.38)
-    bw, bh = int(w * 0.56), int(h * 0.42)
-    # paper sticking out of the slot
-    cv.fill_rect(bx + bw // 2 - 9, by - 18, 18, 20, PAPER)
-    cv.hline(bx + bw // 2 - 9, bx + bw // 2 + 8, by - 18, INK, 1)
-    cv.hline(bx + bw // 2 - 9, bx + bw // 2 + 8, by + 1, INK, 1)
-    cv.vline(bx + bw // 2 - 9, by - 18, by + 1, INK, 1)
-    cv.vline(bx + bw // 2 + 8, by - 18, by + 1, INK, 1)
-    cv.hline(bx + bw // 2 - 5, bx + bw // 2 + 4, by - 12, INK, 1)
-    cv.hline(bx + bw // 2 - 5, bx + bw // 2 + 4, by - 7, INK, 1)
-    # box
+def pic_rikers(cv, ox, oy, w, h):
+    """Rikers Island: a barred jail block on an island in the river."""
+    # river at the bottom
+    wy = oy + int(h * 0.70)
+    cv.fill_rect(ox, wy, w, h - int(h * 0.70), SEA)
+    for wx in range(ox + 6, ox + w - 10, 16):
+        cv.line(wx, wy + 6, wx + 8, wy + 3, PAPER, 1)
+        cv.line(wx + 8, wy + 3, wx + 16, wy + 6, PAPER, 1)
+    # island mound
+    cv.fill_poly([(ox + int(w * 0.08), wy),
+                  (ox + int(w * 0.92), wy),
+                  (ox + int(w * 0.84), wy - 8),
+                  (ox + int(w * 0.16), wy - 8)], LAND)
+    # jail block, clear of the red tag above it
+    bx, by = ox + int(w * 0.24), oy + int(h * 0.30)
+    bw, bh = int(w * 0.52), int(h * 0.36)
     cv.fill_rect(bx, by, bw, bh, INK)
-    cv.fill_rect(bx + bw // 2 - 14, by + 2, 28, 3, PAPER)
-    # red tick on the front
-    cv.line(bx + 10, by + bh // 2, bx + 18, by + bh // 2 + 8, RED, 3)
-    cv.line(bx + 18, by + bh // 2 + 8, bx + 34, by + bh // 2 - 10, RED, 3)
-    # "3" badge
-    cv.fill_circle(ox + int(w * 0.84), oy + int(h * 0.20), 9, RED)
-    cv.text(ox + int(w * 0.84) - 3, oy + int(h * 0.20) - 3, "3", 1, PAPER)
+    # flat roof line
+    cv.hline(bx - 4, bx + bw + 3, by - 2, INK, 2)
+    # barred windows: paper panes with a vertical ink bar each
+    for i in range(4):
+        wx = bx + 8 + i * 20
+        cv.fill_rect(wx, by + 7, 10, 10, PAPER)
+        cv.vline(wx + 5, by + 7, by + 16, INK, 1)
+    # door, barred down the middle
+    cv.fill_rect(bx + bw // 2 - 5, by + bh - 10, 10, 10, PAPER)
+    cv.vline(bx + bw // 2, by + bh - 10, by + bh - 1, INK, 1)
 
 
 def pic_cricket(cv, ox, oy, w, h):
@@ -624,7 +650,7 @@ MAP_DOTS = [
     (1, 26, 3, 8, -4), (2, 36, 7, 8, -4), (3, 41, 6, 8, -4),
     (4, 24, 3, -16, -4), (5, 28, 5, 8, 5), (6, 25, 2, 8, -11),
     (7, 30, 5, 8, -4), (8, 25, 4, -8, 8), (9, 44, 5, 8, -11),
-    (10, 42, 4, 8, -11), (11, 29, 10, 8, -4), (12, 7, 9, -14, -4),
+    (10, 42, 4, 8, -11), (11, 29, 10, 8, -4), (12, 9, 4, -14, -4),
     (13, 46, 16, 8, -4),
 ]
 
@@ -697,11 +723,11 @@ MID5 = [
          kicker="5 ANTALYA - CLIMATE",
          head="COP31 REACHES ITS LAST DAY WITH NO DEAL",
          body="THE DRAFT TEXT LEAVES OUT FOSSIL FUELS."),
-    dict(pic=pic_poland, tag="POLAND: MISSILE",
-         cap="MINISTER SAYS - REUTERS",
+    dict(pic=pic_poland, tag="POLAND: 3 OBJECTS",
+         cap="NOWY LIPOWIEC - REUTERS",
          kicker="6 EASTERN POLAND - SECURITY",
-         head="RUSSIAN CRUISE MISSILE LANDS IN POLAND",
-         body="IT FELL IN A FIELD; TWO AIRPORTS PAUSED."),
+         head="RUSSIAN MISSILES AND DRONE LAND IN POLAND",
+         body="THREE OBJECTS DOWN; ONLY RZESZOW AIRPORT PAUSED."),
     dict(pic=pic_vehicle, tag="IRAQ: ARMY IN", cap="WITNESSED - REUTERS",
          kicker="7 CENTRAL IRAQ - SECURITY",
          head="IRAQI ARMY ENTERS A MILITIA STRONGHOLD",
@@ -728,10 +754,10 @@ BOT5 = [
          kicker="11 TURKANA, KENYA - ENERGY",
          head="KENYA STARTS DRILLING ITS FIRST OIL WELL",
          body="FIRST CRUDE IS DUE ON 1 DECEMBER."),
-    dict(pic=pic_ballot, tag="BUKELE: 3RD BID", cap="FILED - AP",
-         kicker="12 SAN SALVADOR - POLITICS",
-         head="BUKELE FILES TO RUN FOR A THIRD TERM",
-         body="THE VOTE IS ON 28 FEBRUARY 2027."),
+    dict(pic=pic_rikers, tag="RIKERS: 2032", cap="PLAN OUT - REUTERS",
+         kicker="12 NEW YORK - JUSTICE",
+         head="MAMDANI UNVEILS PLAN TO CLOSE RIKERS BY 2032",
+         body="FOUR BOROUGH JAILS TO REPLACE IT; INMATES CUT TO 4,100."),
     dict(pic=pic_cricket, tag="PHILLIPS: 118", cap="SCORECARD - ICC",
          kicker="13 WELLINGTON - CRICKET",
          head="PHILLIPS HITS 118 AGAINST INDIA",
@@ -740,41 +766,42 @@ BOT5 = [
 
 ALSO_LEFT = [
     "14 LVIV - A STRIKE ON A RAILWAY STATION KILLS TWO (BBC)",
-    "15 MOSCOW - RUSSIA DECLARES ESTONIA'S BORDER CLOSURE (REUTERS)",
+    "15 MOSCOW - RUSSIA DENIES SABOTAGE, DECRIES BORDER CLOSURE "
+    "(REUTERS)",
     "16 BERLIN - SCHOOL PUPILS STRIKE AGAINST MILITARY SERVICE "
     "(AL JAZEERA)",
     "17 LONDON - GENERAL SAYS UK RUNS CYBER ATTACKS ABROAD (SKY NEWS)",
-    "18 BEIJING - CHINA HOLDS ITS LOAN RATES FOR AN 18TH MONTH (XINHUA)",
-    "19 TOKYO - SOFTBANK SHARES FALL MORE THAN 14% IN A DAY (AL JAZEERA)",
+    "18 BEIJING - CHINA HOLDS LOAN RATES, 18TH MONTH (XINHUA)",
+    "19 TOKYO - SOFTBANK SHARES FALL OVER 14% (AL JAZEERA)",
     "20 SEOUL - KOSPI INDEX ENDS THE WEEK 7.9% LOWER (ANADOLU)",
-    "21 GANJAM - 209 MM OF RAIN FALLS AS AKVAN CROSSES ODISHA (PTI)",
-    "22 LEBANON - ISRAELI AIR STRIKES HIT THE SOUTH AND THE EAST "
-    "(ANADOLU)",
-    "23 YEMEN - GUNMEN FIRE ON A CARGO SHIP OFF THE COAST (UKMTO)",
+    "21 GANJAM - 209 MM OF RAIN AS AKVAN CROSSES ODISHA (PTI)",
+    "22 LEBANON - ISRAELI STRIKES HIT MANSOURI, MAJDAL ZOUN, "
+    "QANTARA (NNA)",
+    "23 YEMEN - GUNMEN FIRE ON A CARGO SHIP OFF COAST (UKMTO)",
     "24 ABUJA - COURT BARS NEW EVIDENCE AGAINST TINUBU (CHANNELS TV)",
 ]
 
 ALSO_RIGHT = [
-    "25 KAMPALA - POLICE TOLD TO ENFORCE EBOLA BAN ON RALLIES (ALLAFRICA)",
+    "25 CONGO - EBOLA IN NEARLY 100 EASTERN SCHOOLS (ANADOLU)",
     "26 MALAWI - FUEL CRISIS BRINGS NIGHT-LONG PETROL QUEUES (AL JAZEERA)",
-    "27 AFRICA - AFDB SAYS 22 COUNTRIES ARE IN DEBT DISTRESS (ALLAFRICA)",
-    "28 LAS VEGAS - RUSSELL FASTEST IN WET GRAND PRIX PRACTICE "
-    "(AUTOSPORT)",
+    "27 AFRICA - 22 IN OR NEAR DEBT DISTRESS (ALLAFRICA)",
+    "28 LAS VEGAS - RUSSELL FASTEST IN PRACTICE (AUTOSPORT)",
     "29 NEW YORK - NASDAQ FUTURES FALL 1.6% BEFORE THE BELL "
     "(24/7 WALL ST)",
-    "30 WASHINGTON - DEMOCRATS QUERY LAW FIRM'S FREE WORK (AL JAZEERA)",
-    "31 WELLINGTON - NICHOLLS MAKES 175 IN A STAND OF 216 (ICC)",
-    "32 SYDNEY - AUSTRALIAN SHARES FALL 1.8% IN THE SELL-OFF (REUTERS)",
-    "33 ANTALYA - PANAMA ASKS COP31 TO CAP WORLD OIL OUTPUT (ANADOLU)",
-    "34 ANTALYA - EU OFFICIAL CALLS THE CLIMATE DRAFT UNACCEPTABLE (RTE)",
-    "35 TURIN - ATP BACKS A PLAN TO LIFT PLAYER PAY PAST $350M (ANADOLU)",
+    "30 WASHINGTON - WHITE HOUSE NAMES DAVIES AS NEW CYBER DIRECTOR "
+    "(BLOOMBERG)",
+    "31 WELLINGTON - NICHOLLS 175 IN A STAND OF 216 (ICC)",
+    "32 SYDNEY - ASX 200 FALLS 1.6% TO 8,592.6 (REUTERS)",
+    "33 ANTALYA - PANAMA WANTS COP31 OIL OUTPUT CAP (ANADOLU)",
+    "34 ANTALYA - EU CALLS CLIMATE DRAFT UNACCEPTABLE (RTE)",
+    "35 TURIN - ATP TO LIFT PLAYER PAY PAST $350M (ANADOLU)",
 ]
 
 DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
               "RULING ON MYANMAR, THE THREE-LEADER DECLARATION IN SHENZHEN, "
-              "TONGA'S DROUGHT EMERGENCY AND THE MIGRANT BOAT LOST OFF "
-              "SENEGAL. NOT YET SHOWN: BEPICOLOMBO'S ENTRY INTO ORBIT ROUND "
-              "MERCURY AND ANY FINAL COP31 TEXT.")
+              "TONGA'S DROUGHT AND THE MIGRANT BOAT OFF SENEGAL. "
+              "NOT YET SHOWN: BEPICOLOMBO ENTERS ORBIT ROUND MERCURY ON 21 "
+              "NOVEMBER, AND NO FINAL COP31 TEXT WAS ADOPTED ON 20 NOVEMBER.")
 
 
 def draw_list_col(cv, x, y, items, w=336):
@@ -784,8 +811,8 @@ def draw_list_col(cv, x, y, items, w=336):
             cv.text(x, y, line, 1, GRAY)
             if li == 0:
                 cv.text(x, y, line.split(' ')[0], 1, RED)
-            y += 9
-        y += 2
+            y += 10
+        y += 4
     return y
 
 
