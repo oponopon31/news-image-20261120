@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 """THE WORLD IN ONE DAY -- front page for Friday 20 November 2026.
 
+  v7 / round 6 (21 Nov 2026): newspaper-style rebuild -- 35 stories
+  (the verified v5 set cut from 51 to 35 so the text has room to be
+  LARGE and CLEAR), a hand-drawn 7x9 serif display font for the
+  masthead, dateline, kickers, headlines and bodies (the 5x7 bitmap
+  font stays for small print: stat strip, region bar, tags, caption
+  strips, ALSO list, date check, footer), a source in parentheses on
+  EVERY story (leads in the body, featured in the caption strip, ALSO
+  items inline), taller lead pictures and roomier ALSO leading.
+  Illustrations, STATS strip and DATE_CHECK unchanged from v5/v6.
+  Anti-aliasing as v6 (SS=4 supersampling).
+
   v4 (21 Nov 2026): visual-richness upgrade -- detailed lead and
   thumbnail illustrations (gradients, hatching, stipple, skylines,
   candlesticks, spiral arms), heavy double-struck nameplate, shaded
@@ -17,19 +28,22 @@
   of stair-steps.
 
 Draws a 1024x1024 newspaper front page procedurally with Python 3 stdlib
-only (struct + zlib for the PNG encoder, a hand-defined 5x7 bitmap font,
-and geometric pictograms). No network, no external files, no randomness:
+only (struct + zlib for the PNG encoder, hand-defined bitmap fonts --
+a 5x7 font for small print and a 7x9 serif display font -- and
+geometric pictograms). No network, no external files, no randomness:
 two runs produce byte-identical output.
 
 Writes $MAKEFUN_OUTPUT_DIR/entry.png (fallback /output).
 
-Layout: 51 stories in 7 regions, every one dated Friday 20 November 2026.
+Layout: 35 stories in 7 regions, every one dated Friday 20 November 2026.
   TOP     1 Kyiv bridges hit -- 2 Cyclone Akvan landfall -- 3 AI sell-off
   MID     4 UK-EU reset deal -- 5 COP31 no deal -- 6 missile in Poland --
           7 Iraqi army in -- 8 Italy general strike
   LOW     9 Japan inflation -- 10 Seoul impeach -- 11 Kenya first oil --
           12 Rikers closure plan -- 13 Phillips 118
-  ALSO    14-51: two-column list of 38 more stories, one line each.
+  ALSO    14-35: two-column list of 22 more stories, one line each.
+  Regions: EUROPE 8, ASIA 10, MIDDLE EAST 3, AFRICA 4, AMERICAS 7,
+  OCEANIA 1, GLOBAL 2 (35 total).
   DATE CHECK: stories deliberately left out because they are
   Thursday 19 November news -- the World Court's ruling on Myanmar,
   the three-leader declaration in Shenzhen, Tonga's drought emergency
@@ -159,6 +173,122 @@ FONT = {
     '=': ("00000", "00000", "11111", "00000", "11111", "00000", "00000"),
 }
 
+# ------------------------------------------------------- serif font ----
+# Hand-defined 7x9 serif display font (round 6). Same '1'/'0' rows as
+# FONT, but a finer grid with serif feet: vertical stems get a
+# horizontal foot on the top and/or bottom row (H, I, T, U, K, R, X,
+# Y), horizontals are full-width bars, and curves are 9 rows tall so
+# O/C/G/S read as round rather than blocky. Used for the masthead,
+# dateline, kickers, headlines and bodies; small print stays in FONT.
+SERIF = {
+    'A': ("0001000", "0010100", "0010100", "0100010", "0100010", "1111111",
+          "0100010", "0100010", "1100011"),
+    'B': ("1111110", "1000001", "1000001", "1000001", "1111110", "1000001",
+          "1000001", "1000001", "1111110"),
+    'C': ("0111110", "1000001", "1000000", "1000000", "1000000", "1000000",
+          "1000000", "1000001", "0111110"),
+    'D': ("1111100", "1000010", "1000001", "1000001", "1000001", "1000001",
+          "1000001", "1000010", "1111100"),
+    'E': ("1111111", "1000000", "1000000", "1000000", "1111000", "1000000",
+          "1000000", "1000000", "1111111"),
+    'F': ("1111111", "1000000", "1000000", "1000000", "1111000", "1000000",
+          "1000000", "1000000", "1000000"),
+    'G': ("0111110", "1000001", "1000000", "1000000", "1001111", "1000001",
+          "1000001", "1000001", "0111100"),
+    'H': ("1000001", "1000001", "1000001", "1000001", "1111111", "1000001",
+          "1000001", "1000001", "1100011"),
+    'I': ("1111111", "0001000", "0001000", "0001000", "0001000", "0001000",
+          "0001000", "0001000", "1111111"),
+    'J': ("0011111", "0000010", "0000010", "0000010", "0000010", "0000010",
+          "1000010", "1000010", "0111100"),
+    'K': ("1000010", "1000100", "1001000", "1010000", "1100000", "1010000",
+          "1001000", "1000100", "1100011"),
+    'L': ("1000000", "1000000", "1000000", "1000000", "1000000", "1000000",
+          "1000000", "1000000", "1111111"),
+    'M': ("1100011", "1010101", "1010101", "1010101", "1001001", "1001001",
+          "1000001", "1000001", "1100011"),
+    'N': ("1100001", "1010001", "1010001", "1001001", "1001001", "1000101",
+          "1000101", "1000011", "1100011"),
+    'O': ("0111110", "1000001", "1000001", "1000001", "1000001", "1000001",
+          "1000001", "1000001", "0111110"),
+    'P': ("1111110", "1000001", "1000001", "1000001", "1111110", "1000000",
+          "1000000", "1000000", "1000000"),
+    'Q': ("0111110", "1000001", "1000001", "1000001", "1000001", "1000001",
+          "1001001", "1000100", "0111101"),
+    'R': ("1111110", "1000001", "1000001", "1000001", "1111110", "1001000",
+          "1000100", "1000010", "1100011"),
+    'S': ("0111100", "1000010", "1000000", "1000000", "0111100", "0000010",
+          "0000010", "1000010", "0111100"),
+    'T': ("1111111", "0001000", "0001000", "0001000", "0001000", "0001000",
+          "0001000", "0001000", "0011100"),
+    'U': ("1100011", "1000001", "1000001", "1000001", "1000001", "1000001",
+          "1000001", "1000001", "0111110"),
+    'V': ("1100011", "1000001", "1000001", "0100010", "0100010", "0100010",
+          "0010100", "0010100", "0001000"),
+    'W': ("1000001", "1000001", "1000001", "1000001", "1001001", "1001001",
+          "1010101", "1010101", "0110110"),
+    'X': ("1100011", "0100010", "0010100", "0001000", "0001000", "0010100",
+          "0100010", "0100010", "1100011"),
+    'Y': ("1100011", "1000001", "0100010", "0010100", "0001000", "0001000",
+          "0001000", "0001000", "0011100"),
+    'Z': ("1111111", "0000010", "0000100", "0001000", "0010000", "0100000",
+          "1000000", "1000000", "1111111"),
+    '0': ("0111110", "1000001", "1000001", "1000001", "1000001", "1000001",
+          "1000001", "1000001", "0111110"),
+    '1': ("0001000", "0011000", "0001000", "0001000", "0001000", "0001000",
+          "0001000", "0001000", "0111110"),
+    '2': ("0111110", "1000001", "0000001", "0000010", "0000100", "0001000",
+          "0010000", "0100000", "1111111"),
+    '3': ("0111110", "1000001", "0000001", "0000010", "0011110", "0000001",
+          "0000001", "1000001", "0111110"),
+    '4': ("0000100", "0001100", "0010100", "0100100", "1000100", "1111111",
+          "0000100", "0000100", "0001110"),
+    '5': ("1111111", "1000000", "1000000", "1111000", "0000001", "0000001",
+          "1000001", "1000001", "0111110"),
+    '6': ("0011100", "0100000", "1000000", "1000000", "1111100", "1000010",
+          "1000001", "1000001", "0111110"),
+    '7': ("1111111", "0000010", "0000100", "0001000", "0010000", "0010000",
+          "0010000", "0010000", "0010000"),
+    '8': ("0111110", "1000001", "1000001", "0111110", "1000001", "1000001",
+          "1000001", "1000001", "0111110"),
+    '9': ("0111110", "1000001", "1000001", "1000001", "0111111", "0000001",
+          "0000001", "1000010", "0111100"),
+    ' ': ("0000000", "0000000", "0000000", "0000000", "0000000", "0000000",
+          "0000000", "0000000", "0000000"),
+    '.': ("0000000", "0000000", "0000000", "0000000", "0000000", "0000000",
+          "0000000", "0110000", "0110000"),
+    ',': ("0000000", "0000000", "0000000", "0000000", "0000000", "0000000",
+          "0110000", "0110000", "0100000"),
+    ':': ("0000000", "0110000", "0110000", "0000000", "0000000", "0110000",
+          "0110000", "0000000", "0000000"),
+    ';': ("0000000", "0110000", "0110000", "0000000", "0000000", "0110000",
+          "0110000", "0100000", "0100000"),
+    '-': ("0000000", "0000000", "0000000", "0000000", "0111110", "0000000",
+          "0000000", "0000000", "0000000"),
+    '/': ("0000001", "0000010", "0000010", "0000100", "0001000", "0010000",
+          "0100000", "1000000", "1000000"),
+    '(': ("0000100", "0001000", "0010000", "0010000", "0010000", "0010000",
+          "0010000", "0001000", "0000100"),
+    ')': ("0010000", "0001000", "0000100", "0000100", "0000100", "0000100",
+          "0000100", "0001000", "0010000"),
+    '%': ("1100010", "1100100", "0000100", "0001000", "0010000", "0100000",
+          "1001100", "1001100", "0000000"),
+    '&': ("0110000", "1001000", "1001000", "0101000", "0010000", "0101010",
+          "1000101", "1000010", "0111010"),
+    '+': ("0000000", "0001000", "0001000", "0111110", "0001000", "0001000",
+          "0000000", "0000000", "0000000"),
+    '$': ("0001000", "0111110", "1010000", "1010000", "0111000", "0001010",
+          "0001010", "0111110", "0001000"),
+    "'": ("0010000", "0010000", "0100000", "0000000", "0000000", "0000000",
+          "0000000", "0000000", "0000000"),
+    '!': ("0010000", "0010000", "0010000", "0010000", "0010000", "0010000",
+          "0000000", "0010000", "0010000"),
+    '?': ("0111110", "1000001", "0000001", "0000110", "0001000", "0001000",
+          "0000000", "0001000", "0001000"),
+    '=': ("0000000", "0000000", "0111110", "0000000", "0111110", "0000000",
+          "0000000", "0000000", "0000000"),
+}
+
 # -------------------------------------------------------------- canvas ----
 class Canvas:
     def __init__(self, w, h, bg):
@@ -268,35 +398,41 @@ class Canvas:
         i = (y * self.w + x) * 3
         return (self.buf[i], self.buf[i + 1], self.buf[i + 2])
 
-    def text(self, x, y, s, scale, c):
+    def text(self, x, y, s, scale, c, font=None):
         """Anti-aliased text (v6). Each glyph is rasterised at SSx
         supersampling, box-blurred over a ~1-cell window (exact sums
         via a summed-area table), then downsampled to per-pixel
-        coverage and blended over the background. Metrics (advance
-        6*scale, width len*6*scale - scale) are unchanged, so layout
-        is identical to v5; only edges get smooth grey ramps instead
-        of stair-steps. A sqrt gamma keeps 1 px strokes dark."""
+        coverage and blended over the background. Metrics depend on
+        the font: FONT is 5 wide x 7 tall with advance 6 cells, SERIF
+        is 7 wide x 9 tall with advance 8 cells (round 6); layout is
+        otherwise identical in spirit to v5, only edges get smooth
+        grey ramps instead of stair-steps. A sqrt gamma keeps 1 px
+        strokes dark."""
         s = s.upper()
         n = len(s)
         if n == 0:
             return x
+        glyphs = font if font is not None else FONT
+        gw = len(glyphs['A'][0])       # glyph width in cells
+        gh = len(glyphs['A'])          # glyph height in cells
+        adv = gw + 1                   # cells per char incl. gap
         ss = SS
         # Blur spread in mask px: ~1 glyph cell wide, so a diagonal
         # staircase (steps of 1 cell) becomes a smooth ramp while
         # stroke interiors stay fully dark and counters stay open.
         r = max(1, ss * (scale - 1) // 2)
         cell = scale * ss  # mask px per glyph cell
-        mw = n * 6 * cell
-        mh = 7 * cell
+        mw = n * adv * cell
+        mh = gh * cell
         mask = bytearray(mw * mh)
-        for row in range(7):
+        for row in range(gh):
             parts = []
             for ch in s:
-                bits = FONT.get(ch, FONT[' '])[row]
-                for col in range(5):
+                bits = glyphs.get(ch, glyphs[' '])[row]
+                for col in range(gw):
                     parts.append(b'\x01' * cell if bits[col] == '1'
                                  else b'\x00' * cell)
-                parts.append(b'\x00' * cell)  # 6th cell: advance gap
+                parts.append(b'\x00' * cell)  # gap cell: advance
             rowbytes = b''.join(parts)
             for my in range(row * cell, (row + 1) * cell):
                 mask[my * mw:(my + 1) * mw] = rowbytes
@@ -317,8 +453,8 @@ class Canvas:
             sat.append([0] + list(srow))
         win = ss + 2 * r
         area = win * win
-        out_w = n * 6 * scale
-        out_h = 7 * scale
+        out_w = n * adv * scale
+        out_h = gh * scale
         for oy in range(out_h):
             wy0 = oy * ss
             wy1 = wy0 + win
@@ -345,23 +481,27 @@ class Canvas:
                 self.set(px, py, tuple(
                     int(bg[i] + (c[i] - bg[i]) * a + 0.5)
                     for i in range(3)))
-        return x + n * 6 * scale  # x just past the last glyph
+        return x + n * adv * scale  # x just past the last glyph
 
-    def text_width(self, s, scale):
-        return len(s) * 6 * scale - scale
+    def text_width(self, s, scale, font=None):
+        glyphs = font if font is not None else FONT
+        adv = len(glyphs['A'][0]) + 1
+        return len(s) * adv * scale - scale
 
-    def text_centred(self, cx, y, s, scale, c):
-        x = cx - self.text_width(s, scale) // 2
-        self.text(x, y, s, scale, c)
+    def text_centred(self, cx, y, s, scale, c, font=None):
+        x = cx - self.text_width(s, scale, font) // 2
+        self.text(x, y, s, scale, c, font)
         return x
 
-    def text_right(self, x_right, y, s, scale, c):
-        x = x_right - self.text_width(s, scale)
-        self.text(x, y, s, scale, c)
+    def text_right(self, x_right, y, s, scale, c, font=None):
+        x = x_right - self.text_width(s, scale, font)
+        self.text(x, y, s, scale, c, font)
         return x
 
-    def wrap(self, s, scale, max_w):
-        max_chars = max(1, max_w // (6 * scale))
+    def wrap(self, s, scale, max_w, font=None):
+        glyphs = font if font is not None else FONT
+        adv = len(glyphs['A'][0]) + 1
+        max_chars = max(1, max_w // (adv * scale))
         lines, cur = [], ''
         for word in s.upper().split(' '):
             trial = (cur + ' ' + word).strip() if cur else word
@@ -1122,32 +1262,32 @@ STATS = [
 ]
 
 REGIONS = [
-    ("EUROPE", 10, (36, 64, 120)),
-    ("ASIA", 12, RED),
+    ("EUROPE", 8, (36, 64, 120)),
+    ("ASIA", 10, RED),
     ("MIDDLE EAST", 3, (150, 100, 20)),
-    ("AFRICA", 7, GREEN),
-    ("AMERICAS", 11, (90, 60, 140)),
-    ("OCEANIA", 4, (20, 120, 120)),
-    ("GLOBAL", 4, (70, 70, 70)),
+    ("AFRICA", 4, GREEN),
+    ("AMERICAS", 7, (90, 60, 140)),
+    ("OCEANIA", 1, (20, 120, 120)),
+    ("GLOBAL", 2, (70, 70, 70)),
 ]
 
 TOP3 = [
     dict(pic=pic_kyiv, tag="KYIV", tag2="3 BRIDGES HIT",
-         cap="OFFICIALS' COUNT", w=360, pic_h=108, head_scale=3,
+         cap="OFFICIALS' COUNT", w=340, pic_h=108, head_scale=2,
          kicker="1 KYIV, UKRAINE - WAR",
          head="RUSSIAN MISSILES HIT THREE KYIV BRIDGES",
          body="AN OVERNIGHT BARRAGE OF ABOUT 110 MISSILES AND 400 DRONES "
               "KILLED AT LEAST NINE PEOPLE ACROSS UKRAINE AND CUT POWER "
               "AND WATER IN THE CAPITAL. (KYIV INDEPENDENT, BBC)"),
     dict(pic=pic_cyclone, tag="CYCLONE AKVAN", tag2="LANDFALL - 8 AM",
-         cap="WEATHER OFFICE", w=278, pic_h=96, head_scale=2,
+         cap="WEATHER OFFICE", w=292, pic_h=108, head_scale=2,
          kicker="2 ODISHA, INDIA - CYCLONE",
          head="CYCLONE AKVAN COMES ASHORE IN EASTERN INDIA",
          body="THE STORM CROSSED THE COAST NEAR GOPALPUR FROM ABOUT 8 AM "
               "AFTER MORE THAN 300,000 PEOPLE WERE MOVED TO SHELTERS. "
               "NO DEATHS WERE REPORTED. (IMD, DECCAN HERALD)"),
     dict(pic=pic_selloff, tag="AI SELL-OFF", tag2="ASIA, FRIDAY'S CLOSE",
-         cap="CLOSING PRICES", w=278, pic_h=96, head_scale=2,
+         cap="CLOSING PRICES", w=288, pic_h=108, head_scale=2,
          kicker="3 TAIPEI - SEOUL - TOKYO - MARKETS",
          head="AI SELL-OFF SINKS ASIA'S STOCK MARKETS",
          body="TAIWAN'S INDEX FELL 6.2% TO END ITS WORST WEEK SINCE 1991. "
@@ -1156,24 +1296,24 @@ TOP3 = [
 ]
 
 MID5 = [
-    dict(pic=pic_flags, tag="UK-EU DEAL", cap="AGREED - REUTERS",
+    dict(pic=pic_flags, tag="UK-EU DEAL", cap="AGREED (REUTERS)",
          kicker="4 BRUSSELS - DIPLOMACY",
          head="UK AND EU SEAL A 'RESET' DEAL",
          body="FOOD TRADE, YOUTH VISAS, CARBON LINK."),
-    dict(pic=pic_globe, tag="COP31: NO DEAL", cap="ONGOING - UN NEWS",
+    dict(pic=pic_globe, tag="COP31: NO DEAL", cap="ONGOING (UN NEWS)",
          kicker="5 ANTALYA - CLIMATE",
          head="COP31 REACHES ITS LAST DAY WITH NO DEAL",
          body="THE DRAFT TEXT LEAVES OUT FOSSIL FUELS."),
     dict(pic=pic_poland, tag="POLAND: 3 OBJECTS",
-         cap="NOWY LIPOWIEC - REUTERS",
+         cap="NOWY LIPOWIEC (REUTERS)",
          kicker="6 EASTERN POLAND - SECURITY",
          head="RUSSIAN MISSILES AND DRONE LAND IN POLAND",
          body="THREE OBJECTS DOWN; ONLY RZESZOW AIRPORT PAUSED."),
-    dict(pic=pic_vehicle, tag="IRAQ: ARMY IN", cap="WITNESSED - REUTERS",
+    dict(pic=pic_vehicle, tag="IRAQ: ARMY IN", cap="WITNESSED (REUTERS)",
          kicker="7 CENTRAL IRAQ - SECURITY",
          head="IRAQI ARMY ENTERS A MILITIA STRONGHOLD",
          body="TROOPS DEPLOY TO JURF AL-SAKHAR."),
-    dict(pic=pic_strike, tag="ITALY: STRIKE", cap="REPORTED - REUTERS",
+    dict(pic=pic_strike, tag="ITALY: STRIKE", cap="REPORTED (REUTERS)",
          kicker="8 ITALY - LABOUR",
          head="GENERAL STRIKE OVER ITALY'S BUDGET",
          body="WORKERS AND STUDENTS MARCH."),
@@ -1181,25 +1321,25 @@ MID5 = [
 
 BOT5 = [
     dict(pic=pic_rising, tag="JAPAN: +2.3%",
-         cap="OFFICIAL DATA - REUTERS",
+         cap="OFFICIAL DATA (REUTERS)",
          kicker="9 TOKYO - ECONOMY",
          head="JAPAN'S INFLATION PICKS UP TO 2.3%",
          body="A DECEMBER RATE RISE STAYS IN VIEW."),
     dict(pic=pic_court, tag="SEOUL: IMPEACH",
-         cap="DECISION - KOREA HERALD",
+         cap="DECISION (KOREA HERALD)",
          kicker="10 SEOUL - POLITICS",
          head="KOREA'S RULING PARTY TO IMPEACH TOP JUDGE",
          body="IT FOLLOWS AN OVERTURNED CONVICTION."),
     dict(pic=pic_derrick, tag="KENYA: OIL",
-         cap="CEREMONY HELD - ALLAFRICA",
+         cap="CEREMONY HELD (ALLAFRICA)",
          kicker="11 TURKANA, KENYA - ENERGY",
          head="KENYA STARTS DRILLING ITS FIRST OIL WELL",
          body="FIRST CRUDE IS DUE ON 1 DECEMBER."),
-    dict(pic=pic_rikers, tag="RIKERS: 2032", cap="PLAN OUT - REUTERS",
+    dict(pic=pic_rikers, tag="RIKERS: 2032", cap="PLAN OUT (REUTERS)",
          kicker="12 NEW YORK - JUSTICE",
          head="MAMDANI UNVEILS PLAN TO CLOSE RIKERS BY 2032",
          body="FOUR BOROUGH JAILS TO REPLACE IT; INMATES CUT TO 4,100."),
-    dict(pic=pic_cricket, tag="PHILLIPS: 118", cap="SCORECARD - ICC",
+    dict(pic=pic_cricket, tag="PHILLIPS: 118", cap="SCORECARD (ICC)",
          kicker="13 WELLINGTON - CRICKET",
          head="PHILLIPS HITS 118 AGAINST INDIA",
          body="HUNDREDS V INDIA IN ALL THREE FORMATS."),
@@ -1208,45 +1348,29 @@ BOT5 = [
 ALSO_LEFT = [
     "14 LVIV - RAILWAY STATION STRIKE KILLS TWO (BBC)",
     "15 MOSCOW - RUSSIA DENIES SABOTAGE (REUTERS)",
-    "16 BERLIN - PUPILS STRIKE OVER ARMY SERVICE (AL JAZEERA)",
-    "17 LONDON - UK RUNS CYBER ATTACKS ABROAD (SKY NEWS)",
-    "18 BEIJING - CHINA HOLDS LOAN RATES, 18TH MONTH (XINHUA)",
-    "19 TOKYO - SOFTBANK SHARES FALL OVER 14% (AL JAZEERA)",
-    "20 SEOUL - KOSPI ENDS THE WEEK 7.9% LOWER (ANADOLU)",
-    "21 GANJAM - 209 MM OF RAIN AS AKVAN CROSSES ODISHA (PTI)",
-    "22 LEBANON - ISRAELI STRIKES HIT THREE TOWNS (NNA)",
-    "23 YEMEN - GUNMEN FIRE ON A CARGO SHIP OFF COAST (UKMTO)",
-    "24 ABUJA - COURT BARS EVIDENCE VS TINUBU (CHANNELS TV)",
-    "25 CONGO - EBOLA IN NEARLY 100 EASTERN SCHOOLS (ANADOLU)",
-    "26 MALAWI - FUEL CRISIS, NIGHT-LONG QUEUES (AL JAZEERA)",
-    "27 AFRICA - 22 IN OR NEAR DEBT DISTRESS (ALLAFRICA)",
-    "28 LAS VEGAS - RUSSELL FASTEST IN PRACTICE (AUTOSPORT)",
-    "29 NEW YORK - NASDAQ FUTURES FALL 1.6% (24/7 WALL ST)",
-    "30 WASHINGTON - DAVIES NAMED CYBER DIRECTOR (BLOOMBERG)",
-    "31 WELLINGTON - NICHOLLS 175 IN A STAND OF 216 (ICC)",
-    "32 SYDNEY - ASX 200 FALLS 1.6% TO 8,592.6 (REUTERS)",
+    "16 LONDON - UK RUNS CYBER ATTACKS ABROAD (SKY NEWS)",
+    "17 BEIJING - CHINA HOLDS LOAN RATES, 18TH MONTH (XINHUA)",
+    "18 TOKYO - SOFTBANK SHARES FALL OVER 14% (AL JAZEERA)",
+    "19 GANJAM - 209 MM OF RAIN AS AKVAN CROSSES ODISHA (PTI)",
+    "20 LEBANON - ISRAELI STRIKES HIT THREE TOWNS (NNA)",
+    "21 YEMEN - GUNMEN FIRE ON A CARGO SHIP OFF COAST (UKMTO)",
+    "22 CONGO - EBOLA IN NEARLY 100 EASTERN SCHOOLS (ANADOLU)",
+    "23 MALAWI - FUEL CRISIS, NIGHT-LONG QUEUES (AL JAZEERA)",
+    "24 NEW YORK - NASDAQ FUTURES FALL 1.6% (24/7 WALL ST)",
 ]
 
 ALSO_RIGHT = [
-    "33 ANTALYA - PANAMA WANTS COP31 OIL OUTPUT CAP (ANADOLU)",
-    "34 ANTALYA - EU CALLS CLIMATE DRAFT UNACCEPTABLE (RTE)",
-    "35 TURIN - ATP TO LIFT PLAYER PAY PAST $350M (ANADOLU)",
-    "36 COPENHAGEN - DENMARK EXPELS RUSSIAN ATTACHE (BBC)",
-    "37 GTA VI SMASHES $3.79BN DAY-ONE RECORD (REUTERS)",
-    "38 WASHINGTON - MATHEMATICIAN CLAIMS RIEMANN PROOF (AFP)",
-    "39 ST LOUIS - $7.25BN ROUNDUP DEAL APPROVED (REUTERS)",
-    "40 LOS ANGELES - MAN CONVICTED OVER PALISADES FIRE (BBC)",
-    "41 PARIS - THREE POLICE JAILED OVER ZECLER BEATING (BBC)",
-    "42 BAYELSA - FUNERAL BOAT CAPSIZES, 4 DEAD (AL JAZEERA)",
-    "43 HAITI - TWO SALVADORAN SOLDIERS KILLED (AL JAZEERA)",
-    "44 WASHINGTON - PENTAGON DECLASSIFIES UFO FOOTAGE (BBC)",
-    "45 WASHINGTON - TRUMP THREATENS TAX ON AI CENTRES (BBC)",
-    "46 PAKISTAN BEAT SRI LANKA TO SEAL TEST SERIES (REUTERS)",
-    "47 DOHA - INDIA A THRASH NEPAL BY 306 RUNS (IANS)",
-    "48 XI HAILS TURNAROUND IN CHINA-AUSTRALIA TIES (REUTERS)",
-    "49 MUMBAI - RICE PRICES HIT 19-MONTH HIGH (REUTERS)",
-    "50 JOHANNESBURG - ANC FIGHTS TO KEEP KEY CITIES (BBC)",
-    "51 SYDNEY - MAN CHARGED OVER ALLEGED CAR-BOMB PLOT (ABC)",
+    "25 WASHINGTON - DAVIES NAMED CYBER DIRECTOR (BLOOMBERG)",
+    "26 ANTALYA - PANAMA WANTS COP31 OIL OUTPUT CAP (ANADOLU)",
+    "27 COPENHAGEN - DENMARK EXPELS RUSSIAN ATTACHE (BBC)",
+    "28 GTA VI SMASHES $3.79BN DAY-ONE RECORD (REUTERS)",
+    "29 WASHINGTON - MATHEMATICIAN CLAIMS RIEMANN PROOF (AFP)",
+    "30 ST LOUIS - $7.25BN ROUNDUP DEAL APPROVED (REUTERS)",
+    "31 LOS ANGELES - MAN CONVICTED OVER PALISADES FIRE (BBC)",
+    "32 BAYELSA - FUNERAL BOAT CAPSIZES, 4 DEAD (AL JAZEERA)",
+    "33 WASHINGTON - PENTAGON DECLASSIFIES UFO FOOTAGE (BBC)",
+    "34 WASHINGTON - TRUMP THREATENS TAX ON AI CENTRES (BBC)",
+    "35 XI HAILS TURNAROUND IN CHINA-AUSTRALIA TIES (REUTERS)",
 ]
 
 DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
@@ -1259,7 +1383,9 @@ DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
 def draw_list_col(cv, x, y, items, w=336):
     # Single-line items only: every item is <= 56 chars, which fits
     # 336 px at scale 1 (6 px per char). Number in red, rest in gray.
-    # Alternating row tint + hairline rules for density.
+    # Alternating row tint + hairline rules for density. Round 6:
+    # 14 px leading (was 12) -- 11 rows a column now, so each line
+    # gets room to breathe.
     y0 = y
     for i, s in enumerate(items):
         assert len(s) <= 56, s
@@ -1269,7 +1395,7 @@ def draw_list_col(cv, x, y, items, w=336):
         cv.fill_rect(x - 3, y - 2, 2, 11, RED if i % 2 == 0 else (200, 120, 120))
         cv.text(x, y, s, 1, GRAY)
         cv.text(x, y, s.split(' ')[0], 1, RED)
-        y += 12
+        y += 14
     return y
 
 
@@ -1283,24 +1409,26 @@ def draw():
     cv.vline(1011, 12, 1010, INK, 2)
 
     # ---- kicker + masthead: the paper's name is the biggest thing ----
+    # Round 6: serif display font throughout (scale 4 nameplate,
+    # scale 2 dateline), double-struck for a heavy newspaper weight.
     cv.text_centred(W // 2, 20,
-                    "51 STORIES - 7 REGIONS - EVERY ONE DATED "
-                    "FRIDAY 20 NOVEMBER 2026", 1, RED)
+                    "35 STORIES - 7 REGIONS - EVERY ONE DATED "
+                    "FRIDAY 20 NOVEMBER 2026", 1, RED, SERIF)
     # nameplate: grey shadow, then double-struck black for a heavy
     # serif-style weight, with diamond ornaments either side
-    _mw = cv.text_width("THE WORLD IN ONE DAY", 5)
+    _mw = cv.text_width("THE WORLD IN ONE DAY", 4, SERIF)
     _mx = W // 2 - _mw // 2
-    cv.text(_mx + 3, 33, "THE WORLD IN ONE DAY", 5, (150, 145, 135))
-    cv.text(_mx, 30, "THE WORLD IN ONE DAY", 5, INK)
-    cv.text(_mx + 1, 30, "THE WORLD IN ONE DAY", 5, INK)
+    cv.text(_mx + 3, 33, "THE WORLD IN ONE DAY", 4, (150, 145, 135), SERIF)
+    cv.text(_mx, 30, "THE WORLD IN ONE DAY", 4, INK, SERIF)
+    cv.text(_mx + 1, 30, "THE WORLD IN ONE DAY", 4, INK, SERIF)
     for _dx in (-1, 1):
         _ox = W // 2 + _dx * (_mw // 2 + 26)
         cv.fill_poly([(_ox, 40), (_ox + 6, 47), (_ox, 54), (_ox - 6, 47)],
                      RED)
         cv.fill_poly([(_ox, 43), (_ox + 3, 47), (_ox, 51), (_ox - 3, 47)],
                      PAPER)
-    cv.text_centred(W // 2, 68, "FRIDAY 20 NOVEMBER 2026", 3, RED)
-    cv.text_centred(W // 2, 69, "FRIDAY 20 NOVEMBER 2026", 3, RED)
+    cv.text_centred(W // 2, 70, "FRIDAY 20 NOVEMBER 2026", 2, RED, SERIF)
+    cv.text_centred(W // 2, 71, "FRIDAY 20 NOVEMBER 2026", 2, RED, SERIF)
     cv.hline(MARGIN, RIGHT, 94, INK, 3)
     cv.hline(MARGIN, RIGHT, 99, INK, 1)
 
@@ -1325,9 +1453,13 @@ def draw():
         x += wseg
 
     # ---- region bar ----
+    # Round 6: a 1-story region (OCEANIA) would get a 27 px slice,
+    # too narrow for its label, so every segment gets a 64 px floor
+    # and the excess comes off the widest segment (ASIA).
     total = sum(c for _, c, _ in REGIONS)
-    widths = [952 * c // total for _, c, _ in REGIONS]
-    widths[-1] = 952 - sum(widths[:-1])
+    widths = [max(64, 952 * c // total) for _, c, _ in REGIONS]
+    _widest = widths.index(max(widths))
+    widths[_widest] -= sum(widths) - 952
     x = MARGIN
     for (name, count, col), wseg in zip(REGIONS, widths):
         cv.fill_rect(x, 172, wseg, 18, col)
@@ -1335,10 +1467,10 @@ def draw():
                         PAPER)
         x += wseg
 
-    # ---- top 3 stories: lead (#1) is wider, taller, scale-3 head ----
-    cv.text(MARGIN, 196, "TOP STORIES", 1, RED)
-    cv.hline(MARGIN + 73, RIGHT, 199, RED, 1)
-    top_x = [MARGIN, 414, 710]
+    # ---- top 3 stories: serif headlines (scale 2) and bodies ----
+    cv.text(MARGIN, 196, "TOP STORIES", 1, RED, SERIF)
+    cv.hline(MARGIN + 94, RIGHT, 199, RED, 1)
+    top_x = [MARGIN, 392, 700]
     for (sx, story) in zip(top_x, TOP3):
         w = story['w']
         ph = story['pic_h']
@@ -1348,16 +1480,16 @@ def draw():
         tag(cv, sx + 5, 213, story['tag'])
         tag_white(cv, sx + 5, 230, story['tag2'])
         caption_strip(cv, sx + 1, 208 + ph - 13, w - 2, story['cap'])
-        cv.text(sx, 208 + ph + 6, story['kicker'], 1, RED)
-        y = 208 + ph + 16
-        for line in cv.wrap(story['head'], hs, w):
-            cv.text(sx, y, line, hs, INK)
-            y += 7 * hs + 2
+        cv.text(sx, 322, story['kicker'], 1, RED, SERIF)
+        y = 332
+        for line in cv.wrap(story['head'], hs, w, SERIF):
+            cv.text(sx, y, line, hs, INK, SERIF)
+            y += 9 * hs + 2
         y += 6
-        for line in cv.wrap(story['body'], 1, w):
-            cv.text(sx, y, line, 1, GRAY)
-            y += 9
-    cv.hline(MARGIN, RIGHT, 417, INK, 1)
+        for line in cv.wrap(story['body'], 1, w, SERIF):
+            cv.text(sx, y, line, 1, GRAY, SERIF)
+            y += 11
+    cv.hline(MARGIN, RIGHT, 460, INK, 1)
 
     # ---- five-story rows (middle + bottom), compressed pictograms ----
     def five_row(y0, stories):
@@ -1369,52 +1501,53 @@ def draw():
             caption_strip(cv, sx + 1, y0 + 60 - 13, 178, story['cap'])
             cv.text(sx, y0 + 66, story['kicker'], 1, RED)
             y = y0 + 76
-            for line in cv.wrap(story['head'], 1, 180):
-                cv.text(sx, y, line, 1, INK)
-                y += 9
-            y = y0 + 96
-            for line in cv.wrap(story['body'], 1, 180):
-                cv.text(sx, y, line, 1, GRAY)
-                y += 9
+            for line in cv.wrap(story['head'], 1, 180, SERIF):
+                cv.text(sx, y, line, 1, INK, SERIF)
+                y += 11
+            y += 2
+            for line in cv.wrap(story['body'], 1, 180, SERIF):
+                cv.text(sx, y, line, 1, GRAY, SERIF)
+                y += 11
 
-    cv.text(MARGIN, 423, "MORE FROM THE DAY", 1, RED)
-    cv.hline(MARGIN + 115, RIGHT, 426, RED, 1)
-    five_row(436, MID5)
-    cv.hline(MARGIN, RIGHT, 556, INK, 1)
-    five_row(562, BOT5)
-    cv.hline(MARGIN, RIGHT, 680, INK, 1)
+    cv.text(MARGIN, 466, "MORE FROM THE DAY", 1, RED, SERIF)
+    cv.hline(MARGIN + 150, RIGHT, 469, RED, 1)
+    five_row(476, MID5)
+    cv.hline(MARGIN, RIGHT, 613, INK, 1)
+    five_row(619, BOT5)
+    cv.hline(MARGIN, RIGHT, 767, INK, 1)
 
     # ---- map + also list ----
-    cv.text(MARGIN, 686, "WHERE IT HAPPENED", 1, RED)
-    cv.text(300, 686, "ALSO ON FRIDAY 20 NOVEMBER - 38 MORE STORIES", 2, INK)
-    pic_box(cv, MARGIN, 694, 250, 150)
-    draw_map(cv, MARGIN + 5, 699)
+    cv.text(MARGIN, 771, "WHERE IT HAPPENED", 1, RED, SERIF)
+    cv.text(300, 771, "ALSO ON FRIDAY 20 NOVEMBER - 22 MORE STORIES", 1,
+            INK, SERIF)
+    pic_box(cv, MARGIN, 781, 250, 140)
+    draw_map(cv, MARGIN + 5, 786)
     for i, line in enumerate(cv.wrap(
             "EACH NUMBER IS THAT STORY WITH THAT NUMBER ON THIS PAGE.",
             1, 250)):
-        cv.text(MARGIN, 850 + i * 9, line, 1, GRAY)
-    draw_list_col(cv, 300, 700, ALSO_LEFT)
-    draw_list_col(cv, 652, 700, ALSO_RIGHT)
+        cv.text(MARGIN, 887 + i * 9, line, 1, GRAY)
+    draw_list_col(cv, 300, 781, ALSO_LEFT)
+    draw_list_col(cv, 652, 781, ALSO_RIGHT)
 
     # ---- date check ----
-    cv.fill_rect(MARGIN, 925, 952, 42, (253, 238, 232))
-    hatch_diag(cv, MARGIN + 2, 927, 952 - 4, 38, (245, 228, 220), step=14)
-    cv.hline(MARGIN, RIGHT, 925, RED, 2)
-    cv.hline(MARGIN, RIGHT, 966, RED, 2)
-    cv.vline(MARGIN, 925, 966, RED, 2)
-    cv.vline(RIGHT, 925, 966, RED, 2)
-    cv.text(MARGIN + 8, 930, "DATE CHECK", 1, RED)
-    y = 941
+    cv.fill_rect(MARGIN, 935, 952, 38, (253, 238, 232))
+    hatch_diag(cv, MARGIN + 2, 937, 952 - 4, 34, (245, 228, 220), step=14)
+    cv.hline(MARGIN, RIGHT, 935, RED, 2)
+    cv.hline(MARGIN, RIGHT, 972, RED, 2)
+    cv.vline(MARGIN, 935, 972, RED, 2)
+    cv.vline(RIGHT, 935, 972, RED, 2)
+    cv.text(MARGIN + 8, 940, "DATE CHECK", 1, RED, SERIF)
+    y = 951
     for line in cv.wrap(DATE_CHECK, 1, 920):
         cv.text(MARGIN + 8, y, line, 1, INK)
         y += 9
 
     # ---- footer ----
-    cv.text(MARGIN, 975,
+    cv.text(MARGIN, 979,
             "EVERY STORY HERE HAPPENED, OR WAS FIRST REPORTED, ON FRIDAY "
             "20 NOVEMBER 2026. OFFICIALS' COUNTS ARE ATTRIBUTED.", 1, GRAY)
-    cv.text_right(RIGHT, 975, "SOURCES NAMED BESIDE EACH STORY", 1, GRAY)
-    cv.text_centred(W // 2, 985,
+    cv.text_right(RIGHT, 979, "SOURCES NAMED BESIDE EACH STORY", 1, GRAY)
+    cv.text_centred(W // 2, 989,
                     "ALL PICTURES ARE DRAWN BY THE PROGRAM - "
                     "NO PHOTOGRAPHS", 1, GRAY)
     # v5: light newsprint grain, amp 1 on 45% of pixels (see apply_grain).
