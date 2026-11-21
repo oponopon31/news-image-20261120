@@ -8,13 +8,13 @@ two runs produce byte-identical output.
 
 Writes $MAKEFUN_OUTPUT_DIR/entry.png (fallback /output).
 
-Layout: 35 stories in 7 regions, every one dated Friday 20 November 2026.
+Layout: 51 stories in 7 regions, every one dated Friday 20 November 2026.
   TOP     1 Kyiv bridges hit -- 2 Cyclone Akvan landfall -- 3 AI sell-off
   MID     4 UK-EU reset deal -- 5 COP31 no deal -- 6 missile in Poland --
           7 Iraqi army in -- 8 Italy general strike
   LOW     9 Japan inflation -- 10 Seoul impeach -- 11 Kenya first oil --
           12 Rikers closure plan -- 13 Phillips 118
-  ALSO    14-35: two-column list of 22 more stories, numbered on the map.
+  ALSO    14-51: two-column list of 38 more stories, one line each.
   DATE CHECK: stories deliberately left out because they are
   Thursday 19 November news -- the World Court's ruling on Myanmar,
   the three-leader declaration in Shenzhen, Tonga's drought emergency
@@ -28,6 +28,22 @@ Layout: 35 stories in 7 regions, every one dated Friday 20 November 2026.
   items corrected; three 20-November-verified replacements in
   (Rikers plan, Congo Ebola schools, Davies cyber director). The
   ATP player-pay plan appears once, as a single item.
+
+  v3 (21 Nov 2026): 16 more verified 20-November stories in as ALSO
+  items 36-51 (Copenhagen expels a Russian attache; GTA VI $3.79bn
+  day one; Riemann proof CLAIM; $7.25bn Roundup deal; Palisades fire
+  conviction; Zecler beating sentences; Bayelsa boat; Haiti blast;
+  Pentagon UFO files; Trump AI-centre tax threat; Pakistan Test win;
+  India A thrash Nepal; Xi-Albanese turnaround; Indian rice high;
+  ANC cities; Sydney car-bomb charge). Regions now EUROPE 10, ASIA 12,
+  MIDDLE EAST 3, AFRICA 7, AMERICAS 11, OCEANIA 4, GLOBAL 4 (51 total).
+  Redesign: nameplate "THE WORLD IN ONE DAY" is now the biggest thing
+  on the page (scale 5, centred), dateline beneath it (scale 3), the
+  51-story kicker above it; lead story #1 gets a wider column, a taller
+  pictogram and a scale-3 headline; red section labels TOP STORIES and
+  MORE FROM THE DAY; BY THE NUMBERS label and scale-4 stat numbers
+  (uneven columns so 300,000+ fits); ALSO list reworked to single-line
+  items, 19 per column, red numbers, tighter leading.
 
 Facts follow the 35-story reference page for 20 November 2026; the
 load-bearing claims were re-verified against live reporting on
@@ -681,32 +697,32 @@ STATS = [
 ]
 
 REGIONS = [
-    ("EUROPE", 8, (36, 64, 120)),
-    ("ASIA", 8, RED),
+    ("EUROPE", 10, (36, 64, 120)),
+    ("ASIA", 12, RED),
     ("MIDDLE EAST", 3, (150, 100, 20)),
-    ("AFRICA", 5, GREEN),
-    ("AMERICAS", 4, (90, 60, 140)),
-    ("OCEANIA", 3, (20, 120, 120)),
+    ("AFRICA", 7, GREEN),
+    ("AMERICAS", 11, (90, 60, 140)),
+    ("OCEANIA", 4, (20, 120, 120)),
     ("GLOBAL", 4, (70, 70, 70)),
 ]
 
 TOP3 = [
     dict(pic=pic_kyiv, tag="KYIV", tag2="3 BRIDGES HIT",
-         cap="OFFICIALS' COUNT",
+         cap="OFFICIALS' COUNT", w=360, pic_h=108, head_scale=3,
          kicker="1 KYIV, UKRAINE - WAR",
          head="RUSSIAN MISSILES HIT THREE KYIV BRIDGES",
          body="AN OVERNIGHT BARRAGE OF ABOUT 110 MISSILES AND 400 DRONES "
               "KILLED AT LEAST NINE PEOPLE ACROSS UKRAINE AND CUT POWER "
               "AND WATER IN THE CAPITAL. (KYIV INDEPENDENT, BBC)"),
     dict(pic=pic_cyclone, tag="CYCLONE AKVAN", tag2="LANDFALL - 8 AM",
-         cap="WEATHER OFFICE",
+         cap="WEATHER OFFICE", w=278, pic_h=96, head_scale=2,
          kicker="2 ODISHA, INDIA - CYCLONE",
          head="CYCLONE AKVAN COMES ASHORE IN EASTERN INDIA",
          body="THE STORM CROSSED THE COAST NEAR GOPALPUR FROM ABOUT 8 AM "
               "AFTER MORE THAN 300,000 PEOPLE WERE MOVED TO SHELTERS. "
               "NO DEATHS WERE REPORTED. (IMD, DECCAN HERALD)"),
     dict(pic=pic_selloff, tag="AI SELL-OFF", tag2="ASIA, FRIDAY'S CLOSE",
-         cap="CLOSING PRICES",
+         cap="CLOSING PRICES", w=278, pic_h=96, head_scale=2,
          kicker="3 TAIPEI - SEOUL - TOKYO - MARKETS",
          head="AI SELL-OFF SINKS ASIA'S STOCK MARKETS",
          body="TAIWAN'S INDEX FELL 6.2% TO END ITS WORST WEEK SINCE 1991. "
@@ -765,36 +781,47 @@ BOT5 = [
 ]
 
 ALSO_LEFT = [
-    "14 LVIV - A STRIKE ON A RAILWAY STATION KILLS TWO (BBC)",
-    "15 MOSCOW - RUSSIA DENIES SABOTAGE, DECRIES BORDER CLOSURE "
-    "(REUTERS)",
-    "16 BERLIN - SCHOOL PUPILS STRIKE AGAINST MILITARY SERVICE "
-    "(AL JAZEERA)",
-    "17 LONDON - GENERAL SAYS UK RUNS CYBER ATTACKS ABROAD (SKY NEWS)",
+    "14 LVIV - RAILWAY STATION STRIKE KILLS TWO (BBC)",
+    "15 MOSCOW - RUSSIA DENIES SABOTAGE (REUTERS)",
+    "16 BERLIN - PUPILS STRIKE OVER ARMY SERVICE (AL JAZEERA)",
+    "17 LONDON - UK RUNS CYBER ATTACKS ABROAD (SKY NEWS)",
     "18 BEIJING - CHINA HOLDS LOAN RATES, 18TH MONTH (XINHUA)",
     "19 TOKYO - SOFTBANK SHARES FALL OVER 14% (AL JAZEERA)",
-    "20 SEOUL - KOSPI INDEX ENDS THE WEEK 7.9% LOWER (ANADOLU)",
+    "20 SEOUL - KOSPI ENDS THE WEEK 7.9% LOWER (ANADOLU)",
     "21 GANJAM - 209 MM OF RAIN AS AKVAN CROSSES ODISHA (PTI)",
-    "22 LEBANON - ISRAELI STRIKES HIT MANSOURI, MAJDAL ZOUN, "
-    "QANTARA (NNA)",
+    "22 LEBANON - ISRAELI STRIKES HIT THREE TOWNS (NNA)",
     "23 YEMEN - GUNMEN FIRE ON A CARGO SHIP OFF COAST (UKMTO)",
-    "24 ABUJA - COURT BARS NEW EVIDENCE AGAINST TINUBU (CHANNELS TV)",
+    "24 ABUJA - COURT BARS EVIDENCE VS TINUBU (CHANNELS TV)",
+    "25 CONGO - EBOLA IN NEARLY 100 EASTERN SCHOOLS (ANADOLU)",
+    "26 MALAWI - FUEL CRISIS, NIGHT-LONG QUEUES (AL JAZEERA)",
+    "27 AFRICA - 22 IN OR NEAR DEBT DISTRESS (ALLAFRICA)",
+    "28 LAS VEGAS - RUSSELL FASTEST IN PRACTICE (AUTOSPORT)",
+    "29 NEW YORK - NASDAQ FUTURES FALL 1.6% (24/7 WALL ST)",
+    "30 WASHINGTON - DAVIES NAMED CYBER DIRECTOR (BLOOMBERG)",
+    "31 WELLINGTON - NICHOLLS 175 IN A STAND OF 216 (ICC)",
+    "32 SYDNEY - ASX 200 FALLS 1.6% TO 8,592.6 (REUTERS)",
 ]
 
 ALSO_RIGHT = [
-    "25 CONGO - EBOLA IN NEARLY 100 EASTERN SCHOOLS (ANADOLU)",
-    "26 MALAWI - FUEL CRISIS BRINGS NIGHT-LONG PETROL QUEUES (AL JAZEERA)",
-    "27 AFRICA - 22 IN OR NEAR DEBT DISTRESS (ALLAFRICA)",
-    "28 LAS VEGAS - RUSSELL FASTEST IN PRACTICE (AUTOSPORT)",
-    "29 NEW YORK - NASDAQ FUTURES FALL 1.6% BEFORE THE BELL "
-    "(24/7 WALL ST)",
-    "30 WASHINGTON - WHITE HOUSE NAMES DAVIES AS NEW CYBER DIRECTOR "
-    "(BLOOMBERG)",
-    "31 WELLINGTON - NICHOLLS 175 IN A STAND OF 216 (ICC)",
-    "32 SYDNEY - ASX 200 FALLS 1.6% TO 8,592.6 (REUTERS)",
     "33 ANTALYA - PANAMA WANTS COP31 OIL OUTPUT CAP (ANADOLU)",
     "34 ANTALYA - EU CALLS CLIMATE DRAFT UNACCEPTABLE (RTE)",
     "35 TURIN - ATP TO LIFT PLAYER PAY PAST $350M (ANADOLU)",
+    "36 COPENHAGEN - DENMARK EXPELS RUSSIAN ATTACHE (BBC)",
+    "37 GTA VI SMASHES $3.79BN DAY-ONE RECORD (REUTERS)",
+    "38 WASHINGTON - MATHEMATICIAN CLAIMS RIEMANN PROOF (AFP)",
+    "39 ST LOUIS - $7.25BN ROUNDUP DEAL APPROVED (REUTERS)",
+    "40 LOS ANGELES - MAN CONVICTED OVER PALISADES FIRE (BBC)",
+    "41 PARIS - THREE POLICE JAILED OVER ZECLER BEATING (BBC)",
+    "42 BAYELSA - FUNERAL BOAT CAPSIZES, 4 DEAD (AL JAZEERA)",
+    "43 HAITI - TWO SALVADORAN SOLDIERS KILLED (AL JAZEERA)",
+    "44 WASHINGTON - PENTAGON DECLASSIFIES UFO FOOTAGE (BBC)",
+    "45 WASHINGTON - TRUMP THREATENS TAX ON AI CENTRES (BBC)",
+    "46 PAKISTAN BEAT SRI LANKA TO SEAL TEST SERIES (REUTERS)",
+    "47 DOHA - INDIA A THRASH NEPAL BY 306 RUNS (IANS)",
+    "48 XI HAILS TURNAROUND IN CHINA-AUSTRALIA TIES (REUTERS)",
+    "49 MUMBAI - RICE PRICES HIT 19-MONTH HIGH (REUTERS)",
+    "50 JOHANNESBURG - ANC FIGHTS TO KEEP KEY CITIES (BBC)",
+    "51 SYDNEY - MAN CHARGED OVER ALLEGED CAR-BOMB PLOT (ABC)",
 ]
 
 DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
@@ -805,14 +832,13 @@ DATE_CHECK = ("LEFT OUT AS THURSDAY 19 NOVEMBER'S NEWS: THE WORLD COURT'S "
 
 
 def draw_list_col(cv, x, y, items, w=336):
+    # Single-line items only: every item is <= 56 chars, which fits
+    # 336 px at scale 1 (6 px per char). Number in red, rest in gray.
     for s in items:
-        lines = cv.wrap(s, 1, w)
-        for li, line in enumerate(lines):
-            cv.text(x, y, line, 1, GRAY)
-            if li == 0:
-                cv.text(x, y, line.split(' ')[0], 1, RED)
-            y += 10
-        y += 4
+        assert len(s) <= 56, s
+        cv.text(x, y, s, 1, GRAY)
+        cv.text(x, y, s.split(' ')[0], 1, RED)
+        y += 12
     return y
 
 
@@ -825,28 +851,29 @@ def draw():
     cv.vline(12, 12, 1010, INK, 2)
     cv.vline(1011, 12, 1010, INK, 2)
 
-    # ---- kicker + masthead ----
-    cv.text(MARGIN, 24, "THE WORLD IN ONE DAY", 1, RED)
-    cv.text_right(RIGHT, 24,
-                  "35 STORIES - 7 REGIONS - EVERY ONE DATED "
-                  "FRIDAY 20 NOVEMBER 2026", 1, INK)
-    cv.text_centred(W // 2, 36, "FRIDAY 20 NOVEMBER 2026", 6, INK)
-    cv.text_centred(W // 2, 84,
-                    "RUSSIAN MISSILES HIT KYIV'S BRIDGES - CYCLONE AKVAN "
-                    "STRIKES INDIA - AN AI SELL-OFF SINKS ASIA'S MARKETS - "
-                    "UK AND EU SEAL A DEAL", 1, INK)
-    cv.hline(MARGIN, RIGHT, 96, INK, 3)
-    cv.hline(MARGIN, RIGHT, 101, INK, 1)
+    # ---- kicker + masthead: the paper's name is the biggest thing ----
+    cv.text_centred(W // 2, 20,
+                    "51 STORIES - 7 REGIONS - EVERY ONE DATED "
+                    "FRIDAY 20 NOVEMBER 2026", 1, RED)
+    cv.text_centred(W // 2, 30, "THE WORLD IN ONE DAY", 5, INK)
+    cv.text_centred(W // 2, 68, "FRIDAY 20 NOVEMBER 2026", 3, RED)
+    cv.hline(MARGIN, RIGHT, 94, INK, 3)
+    cv.hline(MARGIN, RIGHT, 99, INK, 1)
 
-    # ---- stat strip ----
-    col_w = 952 // 6
-    for i, (num, l1, l2) in enumerate(STATS):
-        x = MARGIN + i * col_w
-        if i > 0:
-            cv.vline(x - 4, 106, 150, RED, 2)
-        cv.text(x + 2, 108, num, 3, INK)
-        cv.text(x + 2, 134, l1, 1, GRAY)
-        cv.text(x + 2, 143, l2, 1, GRAY)
+    # ---- stat strip: BY THE NUMBERS label, scale-4 numbers ----
+    # Uneven columns: each column is as wide as its longest line needs
+    # (number at scale 4, or its two label lines), so 300,000+ fits.
+    cv.text(MARGIN, 106, "BY THE NUMBERS", 1, RED)
+    cv.hline(MARGIN + 91, RIGHT, 109, RED, 1)
+    stat_w = [153, 198, 134, 174, 153, 140]
+    x = MARGIN
+    for (num, l1, l2), wseg in zip(STATS, stat_w):
+        if x > MARGIN:
+            cv.vline(x - 4, 120, 164, RED, 2)
+        cv.text(x + 2, 120, num, 4, INK)
+        cv.text(x + 2, 150, l1, 1, GRAY)
+        cv.text(x + 2, 159, l2, 1, GRAY)
+        x += wseg
 
     # ---- region bar ----
     total = sum(c for _, c, _ in REGIONS)
@@ -854,65 +881,71 @@ def draw():
     widths[-1] = 952 - sum(widths[:-1])
     x = MARGIN
     for (name, count, col), wseg in zip(REGIONS, widths):
-        cv.fill_rect(x, 156, wseg, 18, col)
-        cv.text_centred(x + wseg // 2, 161, "%s %d" % (name, count), 1,
+        cv.fill_rect(x, 172, wseg, 18, col)
+        cv.text_centred(x + wseg // 2, 177, "%s %d" % (name, count), 1,
                         PAPER)
         x += wseg
 
-    # ---- top 3 stories ----
-    top_x = [MARGIN, 359, 682]
-    top_w = 306
+    # ---- top 3 stories: lead (#1) is wider, taller, scale-3 head ----
+    cv.text(MARGIN, 196, "TOP STORIES", 1, RED)
+    cv.hline(MARGIN + 73, RIGHT, 199, RED, 1)
+    top_x = [MARGIN, 414, 710]
     for (sx, story) in zip(top_x, TOP3):
-        pic_box(cv, sx, 180, top_w, 104)
-        story['pic'](cv, sx + 1, 181, top_w - 2, 102)
-        tag(cv, sx + 5, 185, story['tag'])
-        tag_white(cv, sx + 5, 202, story['tag2'])
-        caption_strip(cv, sx + 1, 180 + 104 - 13, top_w - 2, story['cap'])
-        cv.text(sx, 290, story['kicker'], 1, RED)
-        y = 300
-        for line in cv.wrap(story['head'], 2, top_w):
-            cv.text(sx, y, line, 2, INK)
-            y += 16
-        y = 336
-        for line in cv.wrap(story['body'], 1, top_w):
+        w = story['w']
+        ph = story['pic_h']
+        hs = story['head_scale']
+        pic_box(cv, sx, 208, w, ph)
+        story['pic'](cv, sx + 1, 209, w - 2, ph - 2)
+        tag(cv, sx + 5, 213, story['tag'])
+        tag_white(cv, sx + 5, 230, story['tag2'])
+        caption_strip(cv, sx + 1, 208 + ph - 13, w - 2, story['cap'])
+        cv.text(sx, 208 + ph + 6, story['kicker'], 1, RED)
+        y = 208 + ph + 16
+        for line in cv.wrap(story['head'], hs, w):
+            cv.text(sx, y, line, hs, INK)
+            y += 7 * hs + 2
+        y += 6
+        for line in cv.wrap(story['body'], 1, w):
             cv.text(sx, y, line, 1, GRAY)
             y += 9
-    cv.hline(MARGIN, RIGHT, 378, INK, 1)
+    cv.hline(MARGIN, RIGHT, 417, INK, 1)
 
-    # ---- five-story rows (middle + bottom) ----
+    # ---- five-story rows (middle + bottom), compressed pictograms ----
     def five_row(y0, stories):
         xs = [MARGIN, 229, 422, 615, 808]
         for sx, story in zip(xs, stories):
-            pic_box(cv, sx, y0, 180, 82)
-            story['pic'](cv, sx + 1, y0 + 1, 178, 80)
+            pic_box(cv, sx, y0, 180, 60)
+            story['pic'](cv, sx + 1, y0 + 1, 178, 58)
             tag(cv, sx + 5, y0 + 5, story['tag'])
-            caption_strip(cv, sx + 1, y0 + 82 - 13, 178, story['cap'])
-            cv.text(sx, y0 + 88, story['kicker'], 1, RED)
-            y = y0 + 98
+            caption_strip(cv, sx + 1, y0 + 60 - 13, 178, story['cap'])
+            cv.text(sx, y0 + 66, story['kicker'], 1, RED)
+            y = y0 + 76
             for line in cv.wrap(story['head'], 1, 180):
                 cv.text(sx, y, line, 1, INK)
                 y += 9
-            y = y0 + 120
+            y = y0 + 96
             for line in cv.wrap(story['body'], 1, 180):
                 cv.text(sx, y, line, 1, GRAY)
                 y += 9
 
-    five_row(386, MID5)
-    cv.hline(MARGIN, RIGHT, 530, INK, 1)
-    five_row(538, BOT5)
-    cv.hline(MARGIN, RIGHT, 682, INK, 1)
+    cv.text(MARGIN, 423, "MORE FROM THE DAY", 1, RED)
+    cv.hline(MARGIN + 115, RIGHT, 426, RED, 1)
+    five_row(436, MID5)
+    cv.hline(MARGIN, RIGHT, 556, INK, 1)
+    five_row(562, BOT5)
+    cv.hline(MARGIN, RIGHT, 680, INK, 1)
 
     # ---- map + also list ----
-    cv.text(MARGIN, 690, "WHERE IT HAPPENED", 1, RED)
-    cv.text(300, 690, "ALSO ON FRIDAY 20 NOVEMBER - 22 MORE STORIES", 2, INK)
-    pic_box(cv, MARGIN, 700, 250, 150)
-    draw_map(cv, MARGIN + 5, 705)
+    cv.text(MARGIN, 686, "WHERE IT HAPPENED", 1, RED)
+    cv.text(300, 686, "ALSO ON FRIDAY 20 NOVEMBER - 38 MORE STORIES", 2, INK)
+    pic_box(cv, MARGIN, 694, 250, 150)
+    draw_map(cv, MARGIN + 5, 699)
     for i, line in enumerate(cv.wrap(
             "EACH NUMBER IS THAT STORY WITH THAT NUMBER ON THIS PAGE.",
             1, 250)):
-        cv.text(MARGIN, 856 + i * 9, line, 1, GRAY)
-    draw_list_col(cv, 300, 708, ALSO_LEFT)
-    draw_list_col(cv, 652, 708, ALSO_RIGHT)
+        cv.text(MARGIN, 850 + i * 9, line, 1, GRAY)
+    draw_list_col(cv, 300, 700, ALSO_LEFT)
+    draw_list_col(cv, 652, 700, ALSO_RIGHT)
 
     # ---- date check ----
     cv.fill_rect(MARGIN, 925, 952, 42, PAPER)
